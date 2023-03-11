@@ -84,8 +84,13 @@ impl Component for PmgTopNavBar {
             .class("pwt-navbar")
             .class("pwt-justify-content-space-between pwt-align-items-center")
             .class("pwt-border-bottom")
+            .class("pwt-shadow1")
             .padding(2)
             .with_child(html!{ <img class="pwt-navbar-brand" {src} alt="Proxmox logo"/> })
+            .with_child(html!{
+                <span class="pwt-ps-1 pwt-font-headline-small">{"Mail"}</span>
+            })
+            .with_flex_spacer()
             .with_child(button_group)
             .into()
     }
