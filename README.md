@@ -1,0 +1,6 @@
+
+
+Setup proxy to real server
+==========================
+
+ > socat TCP-LISTEN:8000,fork,reuseaddr,bind=localhost OPENSSL:proxmox-new.maurer-it.com:8006,verify=0
