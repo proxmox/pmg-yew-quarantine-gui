@@ -84,11 +84,20 @@ impl Component for PmgQuarantineApp {
     fn view(&self, ctx: &Context<Self>) -> Html {
         let onlogin = ctx.link().callback(|info| Msg::Login(info));
 
+        let content = match &self.login_info {
+            Some(info) => {
+                SpamList::new()
+                    .into()
+            }
+            None => {
+                pwt::widget::error_message("Please login first.", "")
+            }
+        };
+
         let body = Column::new()
             .class("pwt-viewport")
             .with_child(TopNavBar::new())
-            .with_child(SpamList::new())
-            .with_child("TEST PMG");
+            .with_child(content);
 
         ThemeLoader::new(body).into()
     }
