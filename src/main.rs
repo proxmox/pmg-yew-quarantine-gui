@@ -19,6 +19,7 @@ use proxmox_yew_comp::LoginPanel;
 use proxmox_yew_comp::ProxmoxProduct;
 
 enum Msg {
+    Preview(String),
     Login(LoginInfo),
     Logout,
 }
@@ -78,6 +79,10 @@ impl Component for PmgQuarantineApp {
                 self.login_info = Some(info);
                 true
             }
+            Msg::Preview(id) => {
+                log::info!("Preview {id}");
+                true
+            }
         }
     }
 
@@ -87,6 +92,7 @@ impl Component for PmgQuarantineApp {
         let content = match &self.login_info {
             Some(info) => {
                 SpamList::new()
+                    .on_preview(ctx.link().callback(|id| Msg::Preview(id)))
                     .into()
             }
             None => {

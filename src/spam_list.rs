@@ -2,7 +2,7 @@ use serde_json::Value;
 use std::rc::Rc;
 
 use pwt::prelude::*;
-use yew::virtual_dom::{VComp, VNode};
+use yew::{virtual_dom::{VComp, VNode}, html::IntoEventCallback};
 //use yew::html::IntoEventCallback;
 
 use proxmox_yew_comp::http_get;
@@ -22,11 +22,18 @@ struct MailInfo {
     pub time: u64,
 }
 #[derive(Clone, PartialEq, Properties)]
-pub struct SpamList {}
+pub struct SpamList {
+    on_preview: Option<Callback<String>>,
+}
 
 impl SpamList {
     pub fn new() -> Self {
         yew::props!(Self {})
+    }
+
+    pub fn on_preview(mut self, cb: impl IntoEventCallback<String>) -> Self {
+        self.on_preview = cb.into_event_callback();
+        self
     }
 }
 
@@ -53,6 +60,40 @@ impl PmgSpamList {
             }
         })
     }
+
+    fn render_list_item(&self, ctx: &Context<Self>, item: &MailInfo) -> Html {
+        Row::new()
+            .padding_x(2)
+            .padding_y(1)
+            .border_bottom(true)
+            .class("pwt-align-items-center")
+            .with_child(
+                Column::new()
+                    .class("pwt-fit")
+                    .class("pwt-pe-1")
+                    .with_child(html! {
+                        <div class="pwt-font-label-small pwt-text-truncate">{&item.from}</div>
+                    })
+                    .with_child(html! {
+                        <div class="pwt-font-title-medium pwt-text-truncate">{&item.subject}</div>
+                    }),
+            )
+            .with_child(html! {
+                <div class="pwt-white-space-nowrap">
+                {format!("Score: {}", item.spamlevel)}
+                </div>
+            })
+            .onclick(Callback::from({
+                let id = item.id.clone();
+                let on_preview = ctx.props().on_preview.clone();
+                move |_| {
+                        if let Some(on_preview) = &on_preview {
+                            on_preview.emit(id.clone());
+                        }
+                }
+            }))
+            .into()
+    }
 }
 
 impl Component for PmgSpamList {
@@ -77,36 +118,10 @@ impl Component for PmgSpamList {
 
     fn view(&self, ctx: &Context<Self>) -> Html {
         let children: Vec<Html> = self.data.iter()
-            .map(|item| {
-                Row::new()
-                    .padding_x(2)
-                    .padding_y(1)
-                    .border_bottom(true)
-                    .class("pwt-align-items-center")
-                    .with_child(
-                        Column::new()
-                            .class("pwt-fit")
-                            .class("pwt-pe-1")
-                            .with_child(html!{
-                                <div class="pwt-font-label-small pwt-text-truncate">{&item.from}</div>
-                            })
-                            .with_child(html!{
-                                <div class="pwt-font-title-medium pwt-text-truncate">{&item.subject}</div>
-                            })
-                    )
-                    .with_child(html!{
-                        <div class="pwt-white-space-nowrap">
-                        {format!("Score: {}", item.spamlevel)}
-                        </div>
-                    })
-                    .into()
-            })
+            .map(|item| self.render_list_item(ctx, item))
             .collect();
 
-        Column::new()
-            .class("pwt-fit")
-            .children(children)
-            .into()
+        Column::new().class("pwt-fit").children(children).into()
     }
 }
 
