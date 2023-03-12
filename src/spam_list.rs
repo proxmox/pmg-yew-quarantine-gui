@@ -6,7 +6,8 @@ use yew::virtual_dom::{VComp, VNode};
 //use yew::html::IntoEventCallback;
 
 use proxmox_yew_comp::http_get;
-use pwt::widget::Column;
+use pwt::widget::{Column, Row};
+
 use serde::Deserialize;
 
 #[derive(Deserialize, Debug)]
@@ -77,15 +78,26 @@ impl Component for PmgSpamList {
     fn view(&self, ctx: &Context<Self>) -> Html {
         let children: Vec<Html> = self.data.iter()
             .map(|item| {
-                Column::new()
+                Row::new()
                     .padding_x(2)
                     .padding_y(1)
                     .border_bottom(true)
+                    .class("pwt-align-items-center")
+                    .with_child(
+                        Column::new()
+                            .class("pwt-fit")
+                            .class("pwt-pe-1")
+                            .with_child(html!{
+                                <div class="pwt-font-label-small pwt-text-truncate">{&item.from}</div>
+                            })
+                            .with_child(html!{
+                                <div class="pwt-font-title-medium pwt-text-truncate">{&item.subject}</div>
+                            })
+                    )
                     .with_child(html!{
-                        <div class="pwt-font-label-small pwt-text-truncate">{&item.from}</div>
-                    })
-                    .with_child(html!{
-                        <div class="pwt-font-title-medium pwt-text-truncate">{&item.subject}</div>
+                        <div class="pwt-white-space-nowrap">
+                        {format!("Score: {}", item.spamlevel)}
+                        </div>
                     })
                     .into()
             })
