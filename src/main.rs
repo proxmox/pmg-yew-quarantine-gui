@@ -11,12 +11,11 @@ use yew::prelude::*;
 use yew_router::HashRouter;
 
 use pwt::prelude::*;
-use pwt::widget::{Column, Dialog, ThemeLoader};
+use pwt::widget::{Column, Container, Dialog, ThemeLoader};
+use pwt::touch::{Fab, FabMenu};
 
 use proxmox_yew_comp::http_login;
-use proxmox_yew_comp::LoginInfo;
-use proxmox_yew_comp::LoginPanel;
-use proxmox_yew_comp::ProxmoxProduct;
+use proxmox_yew_comp::{LoginInfo, LoginPanel, ProxmoxProduct};
 
 enum Msg {
     Preview(String),
@@ -100,10 +99,23 @@ impl Component for PmgQuarantineApp {
             }
         };
 
+        let fab = Container::new()
+            .class("pwt-position-fixed")
+            .class("pwt-right-2 pwt-bottom-4")
+            .with_child(
+                FabMenu::new()
+                    .with_child(
+                        Fab::new("fa fa-edit")
+                    )
+                    .with_child(
+                        Fab::new("fa fa-trash")
+                    )
+            );
         let body = Column::new()
             .class("pwt-viewport")
             .with_child(TopNavBar::new())
-            .with_child(content);
+            .with_child(content)
+            .with_child(fab);
 
         ThemeLoader::new(body).into()
     }
