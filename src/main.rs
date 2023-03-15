@@ -12,7 +12,7 @@ use yew_router::HashRouter;
 
 use pwt::prelude::*;
 use pwt::widget::{Column, Container, Dialog, ThemeLoader};
-use pwt::touch::{Fab, FabMenu};
+use pwt::touch::{Fab, FabMenu, FabMenuAlign};
 
 use proxmox_yew_comp::http_login;
 use proxmox_yew_comp::{LoginInfo, LoginPanel, ProxmoxProduct};
@@ -32,7 +32,7 @@ impl PmgQuarantineApp {
         let link = ctx.link().clone();
         wasm_bindgen_futures::spawn_local(async move {
             let username = "dietmar@proxmox.com";
-            let ticket  = percent_decode_str("PMGQUAR%253Adietmar%2540proxmox.com%253A640D0922%253A%253ARHD4wNz7F%252BVWFeOTlCWGJLi43oR5mJWw3HrDr7EvBb9azzRMAdSrcJztKLj%252BUfPjnG7R%252BQkPJyrlDkyE3pW8fInjjVrn0bNuDiVN7Y9GN1OUsXsC0noDCUcVhTU1TRQv2XLp%252Bur8Sz8gGTspKib%252F4StwZxltKa78RZyOqv716Lo5x6o4MbuYHcXZfIYcRtMZlgJEUhE710UNHQ0YU5dv1F7uGKw0koI7QaWYv00Di7cmsm1VJCsO5XYyFLVe8dOv8uuHUMf8Mt4Etw7BOQjzOWYJhXc%252Bkf4wb8nHFME%252BisFbUhf4qN9RN9nGAmTTut%252F6i1tdUwGnHtM4tbTVegJ6KA%253D%253D")
+            let ticket  = percent_decode_str("PMGQUAR%253Adietmar%2540proxmox.com%253A640FAC23%253A%253AQNLhQC%252BULfQrAbIshAdFiPvO7EM%252B6uWYd4Ih%252Fm44OycS6JpRN4w%252FJMQji5%252BwTnTDyQfOfnbTRZujOJEMJLNC6a8r%252F0PklyNDNdubeMLRZffYpTtzSaZ%252FiMs78%252FT6RYz73QrG4Wng%252BjW3cPn%252BrxQ5zIDUJn28oIIX60ajGeXxYv3%252BZdBMqr8%252B0T8EplrwJT%252F6YdGH44%252B%252FlPZo8pXqYuVp2Pl8RwHUB0QIhWy2BW9kvVrM%252FxqG2Odl7YPjSYOAK148ARYSUFfUUvoM3x39TVdBBwuGySgXfv9xgFJsPri0u%252FSOnjFZFYTbp9124Lx%252BTcWCe9CCpowvVOdW3A5vihy4FA%253D%253D")
                      .decode_utf8_lossy();
             let ticket = percent_decode_str(&ticket).decode_utf8_lossy();
 
@@ -104,13 +104,22 @@ impl Component for PmgQuarantineApp {
             .class("pwt-right-2 pwt-bottom-4")
             .with_child(
                 FabMenu::new()
+                    .align(FabMenuAlign::End)
+                    .main_button_class("pwt-scheme-primary")
+                    .main_button_class("pwt-fab-small")
                     .with_child(
-                        Fab::new("fa fa-edit")
+                        Fab::new("fa fa-times").text("Blacklist")
                     )
                     .with_child(
-                        Fab::new("fa fa-trash")
+                        Fab::new("fa fa-check").text("Whitelist")
                     )
-            );
+                    .with_child(
+                        Fab::new("fa fa-trash").text("Delete")
+                    )
+                    .with_child(
+                        Fab::new("fa fa-paper-plane").text("Deliver")
+                    )
+             );
         let body = Column::new()
             .class("pwt-viewport")
             .with_child(TopNavBar::new())
