@@ -4,15 +4,19 @@ pub use top_nav_bar::TopNavBar;
 mod spam_list;
 pub use spam_list::SpamList;
 
+mod mail_view;
+pub use mail_view::MailView;
+
 use log::Log;
 use percent_encoding::percent_decode_str;
 
 use yew::prelude::*;
-use yew_router::HashRouter;
+use yew_router::{HashRouter, Routable, Switch};
+use yew_router::scope_ext::RouterScopeExt;
 
 use pwt::prelude::*;
-use pwt::widget::{Column, Container, Dialog, ThemeLoader};
 use pwt::touch::{Fab, FabMenu, FabMenuAlign};
+use pwt::widget::{Column, Container, Dialog, ThemeLoader};
 
 use proxmox_yew_comp::http_login;
 use proxmox_yew_comp::{LoginInfo, LoginPanel, ProxmoxProduct};
@@ -65,7 +69,7 @@ impl Component for PmgQuarantineApp {
         Self { login_info }
     }
 
-    fn update(&mut self, _ctx: &Context<Self>, msg: Self::Message) -> bool {
+    fn update(&mut self, ctx: &Context<Self>, msg: Self::Message) -> bool {
         match msg {
             Msg::Logout => {
                 //log::info!("CLEAR COOKIE");
@@ -80,6 +84,8 @@ impl Component for PmgQuarantineApp {
             }
             Msg::Preview(id) => {
                 log::info!("Preview {id}");
+                let navigator = ctx.link().navigator().unwrap();
+                navigator.push(&Route::ViewMail { id: id.clone() });
                 true
             }
         }
@@ -89,14 +95,10 @@ impl Component for PmgQuarantineApp {
         let onlogin = ctx.link().callback(|info| Msg::Login(info));
 
         let content = match &self.login_info {
-            Some(info) => {
-                SpamList::new()
-                    .on_preview(ctx.link().callback(|id| Msg::Preview(id)))
-                    .into()
-            }
-            None => {
-                pwt::widget::error_message("Please login first.", "")
-            }
+            Some(info) => SpamList::new()
+                .on_preview(ctx.link().callback(|id| Msg::Preview(id)))
+                .into(),
+            None => pwt::widget::error_message("Please login first.", ""),
         };
 
         let fab = Container::new()
@@ -106,20 +108,11 @@ impl Component for PmgQuarantineApp {
                 FabMenu::new()
                     .align(FabMenuAlign::End)
                     .main_button_class("pwt-scheme-primary")
-                    .main_button_class("pwt-fab-small")
-                    .with_child(
-                        Fab::new("fa fa-times").text("Blacklist")
-                    )
-                    .with_child(
-                        Fab::new("fa fa-check").text("Whitelist")
-                    )
-                    .with_child(
-                        Fab::new("fa fa-trash").text("Delete")
-                    )
-                    .with_child(
-                        Fab::new("fa fa-paper-plane").text("Deliver")
-                    )
-             );
+                    .with_child(Fab::new("fa fa-times").text("Blacklist"))
+                    .with_child(Fab::new("fa fa-check").text("Whitelist"))
+                    .with_child(Fab::new("fa fa-trash").text("Delete"))
+                    .with_child(Fab::new("fa fa-paper-plane").text("Deliver")),
+            );
         let body = Column::new()
             .class("pwt-viewport")
             .with_child(TopNavBar::new())
@@ -130,9 +123,30 @@ impl Component for PmgQuarantineApp {
     }
 }
 
+#[derive(Clone, Routable, PartialEq)]
+enum Route {
+    #[at("/")]
+    SpamList,
+    #[at("/post/:id")]
+    ViewMail { id: String },
+    #[not_found]
+    #[at("/404")]
+    NotFound,
+}
+fn switch(routes: Route) -> Html {
+    match routes {
+        Route::SpamList => html! { <PmgQuarantineApp/> },
+        Route::ViewMail { id } => MailView::new(id).into(),
+        Route::NotFound => html! { <h1>{ "404" }</h1> },
+    }
+}
 #[function_component]
 fn Scafold() -> Html {
-    html! { <HashRouter><PmgQuarantineApp/></HashRouter>}
+    ThemeLoader::new(html! {
+        <HashRouter>
+            <Switch<Route> render={switch} />
+        </HashRouter>
+    }).into()
 }
 
 fn main() {
