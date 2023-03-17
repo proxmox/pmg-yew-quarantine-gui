@@ -12,17 +12,43 @@ use yew_router::scope_ext::RouterScopeExt;
 use proxmox_yew_comp::http_get;
 use pwt::widget::{ActionIcon, Button, Column, Container, Row};
 
+#[derive(Copy, Clone, PartialEq)]
+pub enum PageAnimationStyle {
+    Push,
+    Fade,
+    Cover,
+}
+
+impl Into<Classes> for PageAnimationStyle {
+    fn into(self) -> Classes {
+        match self {
+            PageAnimationStyle::Push => "pwt-page-animation-push",
+            PageAnimationStyle::Fade => "pwt-page-animation-fade",
+            PageAnimationStyle::Cover => "pwt-page-animation-cover",
+        }.into()
+    }
+}
+
 #[derive(Clone, PartialEq, Properties)]
 pub struct PageStack {
     #[prop_or_default]
     stack: Vec<Html>,
+
+    #[prop_or(PageAnimationStyle::Push)]
+    animation_style: PageAnimationStyle,
 }
 
 impl PageStack {
     pub fn new(pages: Vec<Html>) -> Self {
         yew::props!(Self { stack: pages })
     }
+
+    pub fn animation_style(mut self, style: PageAnimationStyle) -> Self {
+        self.animation_style = style;
+        self
+    }
 }
+
 
 #[derive(Clone, PartialEq)]
 enum ViewState {
@@ -84,7 +110,7 @@ impl Component for PmgPageStack {
 
         let stack_len = stack.len();
 
-        let animation = "pwt-page-animation-push";
+        let animation: Classes = props.animation_style.into();
 
         for (i, child) in stack.into_iter().enumerate() {
 
@@ -104,7 +130,7 @@ impl Component for PmgPageStack {
             let mut page = Container::new()
                 .class("pwt-bg-color-neutral")
                 .class("pwt-page-container")
-                .class(animation)
+                .class(animation.clone())
                 .class(child_class)
                 .key(Key::from(format!("stack-level-{i}")))
                 .onanimationend(ctx.link().callback(|_| Msg::AnimationEnd))
