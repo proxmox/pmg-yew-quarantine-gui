@@ -7,8 +7,8 @@ pub use top_nav_bar::TopNavBar;
 mod spam_list;
 pub use spam_list::SpamList;
 
-mod mail_view;
-pub use mail_view::MailView;
+mod page_mail_view;
+pub use page_mail_view::PageMailView;
 
 mod page_spam_list;
 pub use page_spam_list::PageSpamList;
@@ -50,7 +50,7 @@ fn switch(routes: Route) -> Html {
             vec![html! { <PageSpamList/> }]
         }
         Route::ViewMail { id } => {
-            vec![html! { <PageSpamList/> }, MailView::new(id).into()]
+            vec![html! { <PageSpamList/> }, PageMailView::new(id).into()]
         }
         Route::NotFound => {
             vec![html! { <h1>{ "404" }</h1> }]

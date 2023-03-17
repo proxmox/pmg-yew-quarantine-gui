@@ -13,20 +13,20 @@ use pwt::touch::{Fab, FabMenu, FabMenuAlign};
 use super::Route;
 
 #[derive(Clone, PartialEq, Properties)]
-pub struct MailView {
+pub struct PageMailView {
     id: String,
 }
 
-impl MailView {
+impl PageMailView {
     pub fn new(id: impl Into<String>) -> Self {
         yew::props!(Self { id: id.into() })
     }
 }
 
-pub struct PmgMailView {
+pub struct PmgPageMailView {
 }
 
-impl PmgMailView {
+impl PmgPageMailView {
 
     fn top_bar(&self, ctx: &Context<Self>) -> Html {
         Row::new()
@@ -78,9 +78,9 @@ impl PmgMailView {
     }
 }
 
-impl Component for PmgMailView {
+impl Component for PmgPageMailView {
     type Message = ();
-    type Properties = MailView;
+    type Properties = PageMailView;
 
     fn create(_ctx: &Context<Self>) -> Self {
         Self { }
@@ -110,9 +110,9 @@ impl Component for PmgMailView {
     }
 }
 
-impl Into<VNode> for MailView {
+impl Into<VNode> for PageMailView {
     fn into(self) -> VNode {
-        let comp = VComp::new::<PmgMailView>(Rc::new(self), None);
+        let comp = VComp::new::<PmgPageMailView>(Rc::new(self), None);
         VNode::from(comp)
     }
 }
