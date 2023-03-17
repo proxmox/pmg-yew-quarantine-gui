@@ -1,0 +1,126 @@
+use std::rc::Rc;
+
+use pwt::prelude::*;
+use yew::{
+    html::IntoEventCallback,
+    virtual_dom::{VComp, VNode},
+};
+//use yew::html::IntoEventCallback;
+use yew::virtual_dom::Key;
+use yew_router::scope_ext::RouterScopeExt;
+
+use proxmox_yew_comp::http_get;
+use pwt::widget::{ActionIcon, Button, Column, Container, Row};
+
+#[derive(Clone, PartialEq, Properties)]
+pub struct PageStack {
+    #[prop_or_default]
+    stack: Vec<Html>,
+}
+
+impl PageStack {
+    pub fn new(pages: Vec<Html>) -> Self {
+        yew::props!(Self { stack: pages })
+    }
+}
+
+#[derive(Clone, PartialEq)]
+enum ViewState {
+    Normal,
+    Grow,
+    Shrink(Html),
+}
+pub enum Msg {
+    AnimationEnd,
+}
+
+pub struct PmgPageStack {
+    state: ViewState,
+}
+
+impl Component for PmgPageStack {
+    type Message = Msg;
+    type Properties = PageStack;
+
+    fn create(ctx: &Context<Self>) -> Self {
+        let props = ctx.props();
+
+        Self {
+            state: ViewState::Normal,
+        }
+    }
+
+    fn update(&mut self, ctx: &Context<Self>, msg: Self::Message) -> bool {
+        match msg {
+            Msg::AnimationEnd => {
+                log::info!("AnimationEnd");
+                self.state = ViewState::Normal;
+                true
+            }
+        }
+    }
+
+    fn changed(&mut self, ctx: &Context<Self>, old_props: &Self::Properties) -> bool {
+        let props = ctx.props();
+
+        if props.stack.len() > old_props.stack.len() {
+            self.state = ViewState::Grow;
+        } else if props.stack.len() < old_props.stack.len() {
+            self.state = ViewState::Shrink(old_props.stack.last().unwrap().clone());
+        }
+
+        true
+    }
+
+    fn view(&self, ctx: &Context<Self>) -> Html {
+        let props = ctx.props();
+
+        let mut children: Vec<Html> = Vec::new();
+
+        let mut stack = props.stack.clone();
+        if let ViewState::Shrink(child) = &self.state {
+            stack.push(child.clone());
+        }
+
+        let stack_len = stack.len();
+
+        let animation = "pwt-page-animation-push";
+
+        for (i, child) in stack.into_iter().enumerate() {
+
+            let top_child = (i + 1) == stack_len;
+            let parent = (i + 2) == stack_len;
+
+
+            let child_class = match self.state {
+                ViewState::Grow if top_child => "pwt-page-grow",
+                ViewState::Grow if parent => "pwt-page-shrink",
+                ViewState::Shrink(_) if top_child => "pwt-page-grow-reverse",
+                ViewState::Shrink(_) if parent => "pwt-page-shrink-reverse",
+                _ if top_child => "pwt-page-visible",
+                _ => "pwt-page-hidden",
+            };
+
+            let mut page = Container::new()
+                .class("pwt-bg-color-neutral")
+                .class("pwt-page-container")
+                .class(animation)
+                .class(child_class)
+                .key(Key::from(format!("stack-level-{i}")))
+                .onanimationend(ctx.link().callback(|_| Msg::AnimationEnd))
+                .with_child(child);
+
+
+            children.push(page.into())
+        }
+
+        Container::new().children(children).into()
+    }
+}
+
+impl Into<VNode> for PageStack {
+    fn into(self) -> VNode {
+        let comp = VComp::new::<PmgPageStack>(Rc::new(self), None);
+        VNode::from(comp)
+    }
+}

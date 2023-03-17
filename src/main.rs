@@ -1,3 +1,6 @@
+mod page_stack;
+pub use page_stack::PageStack;
+
 mod top_nav_bar;
 pub use top_nav_bar::TopNavBar;
 
@@ -134,11 +137,23 @@ enum Route {
     NotFound,
 }
 fn switch(routes: Route) -> Html {
-    match routes {
-        Route::SpamList => html! { <PmgQuarantineApp/> },
-        Route::ViewMail { id } => MailView::new(id).into(),
-        Route::NotFound => html! { <h1>{ "404" }</h1> },
-    }
+    let stack = match routes {
+        Route::SpamList => {
+            vec![html! { <PmgQuarantineApp/> }]
+        }
+        Route::ViewMail { id } => {
+            vec![
+                html! { <PmgQuarantineApp/> },
+                MailView::new(id).into(),
+            ]
+        }
+        Route::NotFound => {
+            vec![html! { <h1>{ "404" }</h1> }]
+        }
+    };
+
+    PageStack::new(stack)
+        .into()
 }
 #[function_component]
 fn Scafold() -> Html {
