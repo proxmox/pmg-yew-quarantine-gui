@@ -13,6 +13,9 @@ pub use page_mail_view::PageMailView;
 mod page_spam_list;
 pub use page_spam_list::PageSpamList;
 
+mod page_not_found;
+pub use page_not_found::PageNotFound;
+
 use log::Log;
 use percent_encoding::percent_decode_str;
 
@@ -53,7 +56,7 @@ fn switch(routes: Route) -> Html {
             vec![html! { <PageSpamList/> }, PageMailView::new(id).into()]
         }
         Route::NotFound => {
-            vec![html! { <h1>{ "404" }</h1> }]
+            vec![html! { <PageNotFound/> }]
         }
     };
 
