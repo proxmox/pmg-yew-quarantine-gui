@@ -1,8 +1,14 @@
+use anyhow::{format_err, Error};
+
+use proxmox_schema::param_format_err;
 use serde_json::Value;
 use std::rc::Rc;
 
-use pwt::prelude::*;
-use yew::{virtual_dom::{VComp, VNode}, html::IntoEventCallback};
+use pwt::{prelude::*, widget::error_message};
+use yew::{
+    html::IntoEventCallback,
+    virtual_dom::{VComp, VNode},
+};
 //use yew::html::IntoEventCallback;
 
 use proxmox_yew_comp::http_get;
@@ -38,26 +44,19 @@ impl SpamList {
 }
 
 pub enum Msg {
-    LoadData(Vec<MailInfo>),
+    LoadResult(Result<Vec<MailInfo>, Error>),
 }
 
 pub struct PmgSpamList {
-    data: Vec<MailInfo>,
+    data: Result<Vec<MailInfo>, Error>,
 }
 
 impl PmgSpamList {
     fn load(&self, ctx: &Context<Self>) {
         let link = ctx.link().clone();
         wasm_bindgen_futures::spawn_local(async move {
-            match http_get::<Vec<MailInfo>>("/quarantine/spam", None).await {
-                Ok(data) => {
-                    link.send_message(Msg::LoadData(data));
-                }
-                Err(err) => {
-                    log::error!("ERROR: {:?}", err);
-                    //link.send_message(Msg::LoginError(err.to_string()));
-                }
-            }
+            let result = http_get::<Vec<MailInfo>>("/quarantine/spam", None).await;
+            link.send_message(Msg::LoadResult(result));
         })
     }
 
@@ -87,9 +86,9 @@ impl PmgSpamList {
                 let id = item.id.clone();
                 let on_preview = ctx.props().on_preview.clone();
                 move |_| {
-                        if let Some(on_preview) = &on_preview {
-                            on_preview.emit(id.clone());
-                        }
+                    if let Some(on_preview) = &on_preview {
+                        on_preview.emit(id.clone());
+                    }
                 }
             }))
             .into()
@@ -101,27 +100,34 @@ impl Component for PmgSpamList {
     type Properties = SpamList;
 
     fn create(ctx: &Context<Self>) -> Self {
-        let me = Self { data: Vec::new() };
+        let me = Self {
+            data: Err(format_err!("no data loaded")),
+        };
         me.load(ctx);
         me
     }
 
     fn update(&mut self, _ctx: &Context<Self>, msg: Self::Message) -> bool {
         match msg {
-            Msg::LoadData(data) => {
-                log::info!("GOT {:?}", data);
-                self.data = data;
+            Msg::LoadResult(result) => {
+                self.data = result;
             }
         }
         true
     }
 
     fn view(&self, ctx: &Context<Self>) -> Html {
-        let children: Vec<Html> = self.data.iter()
-            .map(|item| self.render_list_item(ctx, item))
-            .collect();
+        match &self.data {
+            Ok(data) => {
+                let children: Vec<Html> = data
+                    .iter()
+                    .map(|item| self.render_list_item(ctx, item))
+                    .collect();
 
-        Column::new().class("pwt-fit").children(children).into()
+                Column::new().class("pwt-fit").children(children).into()
+            }
+            Err(err) => error_message(&err.to_string(), "pwt-p-2"),
+        }
     }
 }
 

@@ -8,7 +8,7 @@ anyhow = "1.0"
 lazy_static = "1.4"
 yew = { version = "0.20",  features = ["csr"] }
 yew-router = { version = "0.17" }
-web-sys = { version = "0.3", features = [ "DomRect", "Element" ] }
+web-sys = { version = "0.3", features = [ "DomRect", "Element", "UrlSearchParams"] }
 log = "0.4.6"
 wasm-logger = "0.2"
 serde = { version = "1.0", features = ["derive"] }

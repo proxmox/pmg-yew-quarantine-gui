@@ -10,12 +10,15 @@ pub use spam_list::SpamList;
 mod mail_view;
 pub use mail_view::MailView;
 
+mod page_spam_list;
+pub use page_spam_list::PageSpamList;
+
 use log::Log;
 use percent_encoding::percent_decode_str;
 
 use yew::prelude::*;
-use yew_router::{HashRouter, Routable, Switch};
 use yew_router::scope_ext::RouterScopeExt;
+use yew_router::{HashRouter, Routable, Switch};
 
 use pwt::prelude::*;
 use pwt::touch::{Fab, FabMenu, FabMenuAlign};
@@ -24,10 +27,37 @@ use pwt::widget::{Column, Container, Dialog, ThemeLoader};
 use proxmox_yew_comp::http_login;
 use proxmox_yew_comp::{LoginInfo, LoginPanel, ProxmoxProduct};
 
-enum Msg {
-    Preview(String),
+//http://192.168.3.106:8080/quarantine?ticket=PMGQUAR%253Adietmar%2540proxmox.com%253A6413A0A7%253A%253A5nZ1NaZiff2WnBwics9sFU6Q2Jj%252BUzhigel85zZt8ui9YkLWSJJ%252F5a1XJ71b9rtU0YwIVp7Nnk3PeHuulANqVaMQSSDELP1qGGj8f8Orj9ybDWXWi5JefM6%252BmE%252Fksvl6k%252F0ehrI1%252Blgd9kTSi6%252B1Fe8QxuPA5ZkIprovs1r6qb8u5903gclJ59AirOntGYj6LtKKbXAKc%252BL13N2b9tgF02vKRrjxObrviAZzJQIS95rl22oooHXcZfHWFonpVgBkXe3AAaboNrqbxBkmVplnV8xbdOVPUpUMnUNLlz3fJvmRdkQCSc3k5v7jhWk8vAEkvwg%252FRjtENBDt1A%252FhkClQlA%253D%253D
+
+pub enum Msg {
     Login(LoginInfo),
-    Logout,
+    //Logout,
+}
+
+#[derive(Clone, Routable, PartialEq)]
+enum Route {
+    #[at("/")]
+    SpamList,
+    #[at("/post/:id")]
+    ViewMail { id: String },
+    #[not_found]
+    #[at("/404")]
+    NotFound,
+}
+fn switch(routes: Route) -> Html {
+    let stack = match routes {
+        Route::SpamList => {
+            vec![html! { <PageSpamList/> }]
+        }
+        Route::ViewMail { id } => {
+            vec![html! { <PageSpamList/> }, MailView::new(id).into()]
+        }
+        Route::NotFound => {
+            vec![html! { <h1>{ "404" }</h1> }]
+        }
+    };
+
+    PageStack::new(stack).into()
 }
 
 struct PmgQuarantineApp {
@@ -35,14 +65,10 @@ struct PmgQuarantineApp {
 }
 
 impl PmgQuarantineApp {
-    fn ticket_login(ctx: &Context<Self>) {
+    fn ticket_login(ctx: &Context<Self>, username: String, ticket: String) {
         let link = ctx.link().clone();
-        wasm_bindgen_futures::spawn_local(async move {
-            let username = "dietmar@proxmox.com";
-            let ticket  = percent_decode_str("PMGQUAR%253Adietmar%2540proxmox.com%253A640FAC23%253A%253AQNLhQC%252BULfQrAbIshAdFiPvO7EM%252B6uWYd4Ih%252Fm44OycS6JpRN4w%252FJMQji5%252BwTnTDyQfOfnbTRZujOJEMJLNC6a8r%252F0PklyNDNdubeMLRZffYpTtzSaZ%252FiMs78%252FT6RYz73QrG4Wng%252BjW3cPn%252BrxQ5zIDUJn28oIIX60ajGeXxYv3%252BZdBMqr8%252B0T8EplrwJT%252F6YdGH44%252B%252FlPZo8pXqYuVp2Pl8RwHUB0QIhWy2BW9kvVrM%252FxqG2Odl7YPjSYOAK148ARYSUFfUUvoM3x39TVdBBwuGySgXfv9xgFJsPri0u%252FSOnjFZFYTbp9124Lx%252BTcWCe9CCpowvVOdW3A5vihy4FA%253D%253D")
-                     .decode_utf8_lossy();
-            let ticket = percent_decode_str(&ticket).decode_utf8_lossy();
 
+        wasm_bindgen_futures::spawn_local(async move {
             match http_login(username, ticket, "quarantine").await {
                 Ok(info) => {
                     link.send_message(Msg::Login(info));
@@ -61,107 +87,45 @@ impl Component for PmgQuarantineApp {
     type Properties = ();
 
     fn create(ctx: &Context<Self>) -> Self {
-        let login_info = LoginInfo::from_cookie(ProxmoxProduct::PMG);
-        if let Some(info) = &login_info {
-            log::info!("GOT COOKIE");
-            proxmox_yew_comp::http_set_auth(info.clone());
-        } else {
-            log::info!("USE TICKET");
-            Self::ticket_login(ctx);
+        // Autologin with quartantine url and ticket
+        let document = web_sys::window().unwrap().document().unwrap();
+        let location = document.location().unwrap();
+        let path = location.pathname().unwrap();
+        if path == "/quarantine" {
+            let search = location.search().unwrap();
+            let param = web_sys::UrlSearchParams::new_with_str(&search).unwrap();
+            if let Some(ticket) = param.get("ticket") {
+                let ticket = percent_decode_str(&ticket).decode_utf8_lossy();
+                if ticket.starts_with("PMGQUAR:") {
+                    if let Some(username) = ticket.split(":").nth(1) {
+                        Self::ticket_login(ctx, username.to_string(), ticket.to_string());
+                    }
+                }
+            }
         }
-        Self { login_info }
+        Self { login_info: None }
+    }
+
+    fn view(&self, ctx: &Context<Self>) -> Html {
+        ThemeLoader::new(html! {
+            <HashRouter> // fixme:  basename="/quarantine/">
+                <Switch<Route> render={switch} />
+            </HashRouter>
+        })
+        .into()
     }
 
     fn update(&mut self, ctx: &Context<Self>, msg: Self::Message) -> bool {
         match msg {
-            Msg::Logout => {
-                //log::info!("CLEAR COOKIE");
-                proxmox_yew_comp::http_clear_auth();
-                self.login_info = None;
-                true
-            }
             Msg::Login(info) => {
-                log::info!("GOT LOGIN");
                 self.login_info = Some(info);
-                true
-            }
-            Msg::Preview(id) => {
-                log::info!("Preview {id}");
-                let navigator = ctx.link().navigator().unwrap();
-                navigator.push(&Route::ViewMail { id: id.clone() });
-                true
+                let document = web_sys::window().unwrap().document().unwrap();
+                let location = document.location().unwrap();
+                location.replace("/");
             }
         }
+        true
     }
-
-    fn view(&self, ctx: &Context<Self>) -> Html {
-        let onlogin = ctx.link().callback(|info| Msg::Login(info));
-
-        let content = match &self.login_info {
-            Some(info) => SpamList::new()
-                .on_preview(ctx.link().callback(|id| Msg::Preview(id)))
-                .into(),
-            None => pwt::widget::error_message("Please login first.", ""),
-        };
-
-        let fab = Container::new()
-            .class("pwt-position-fixed")
-            .class("pwt-right-2 pwt-bottom-4")
-            .with_child(
-                FabMenu::new()
-                    .align(FabMenuAlign::End)
-                    .main_button_class("pwt-scheme-primary")
-                    .with_child(Fab::new("fa fa-times").text("Blacklist"))
-                    .with_child(Fab::new("fa fa-check").text("Whitelist"))
-                    .with_child(Fab::new("fa fa-trash").text("Delete"))
-                    .with_child(Fab::new("fa fa-paper-plane").text("Deliver")),
-            );
-        let body = Column::new()
-            .class("pwt-viewport")
-            .with_child(TopNavBar::new())
-            .with_child(content)
-            .with_child(fab);
-
-        ThemeLoader::new(body).into()
-    }
-}
-
-#[derive(Clone, Routable, PartialEq)]
-enum Route {
-    #[at("/")]
-    SpamList,
-    #[at("/post/:id")]
-    ViewMail { id: String },
-    #[not_found]
-    #[at("/404")]
-    NotFound,
-}
-fn switch(routes: Route) -> Html {
-    let stack = match routes {
-        Route::SpamList => {
-            vec![html! { <PmgQuarantineApp/> }]
-        }
-        Route::ViewMail { id } => {
-            vec![
-                html! { <PmgQuarantineApp/> },
-                MailView::new(id).into(),
-            ]
-        }
-        Route::NotFound => {
-            vec![html! { <h1>{ "404" }</h1> }]
-        }
-    };
-
-    PageStack::new(stack)
-        .into()
-}
-#[function_component]
-fn Scafold() -> Html {
-    ThemeLoader::new(html! {
-        <HashRouter>
-            <Switch<Route> render={switch} />
-        </HashRouter>
-    }).into()
 }
 
 fn main() {
@@ -173,5 +137,5 @@ fn main() {
 
     wasm_logger::init(wasm_logger::Config::default());
 
-    yew::Renderer::<Scafold>::new().render();
+    yew::Renderer::<PmgQuarantineApp>::new().render();
 }
