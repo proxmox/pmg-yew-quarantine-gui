@@ -1,3 +1,5 @@
+use js_sys::Date;
+use wasm_bindgen::JsValue;
 
 use yew::prelude::*;
 use yew_router::scope_ext::RouterScopeExt;
@@ -5,8 +7,7 @@ use yew_router::scope_ext::RouterScopeExt;
 use pwt::prelude::*;
 use pwt::touch::{Fab};
 use pwt::widget::{Button, Column, Container, Dialog, Row};
-use pwt::widget::form::Field;
-
+use pwt::widget::form::{Field, Form, FormContext};
 
 use crate::{Route, SpamList, TopNavBar};
 
@@ -17,6 +18,9 @@ pub enum ViewState {
 }
 pub struct PageSpamList {
     state: ViewState,
+    start_date: f64,
+    end_date: f64,
+    form_context: FormContext,
 }
 
 pub enum Msg {
@@ -26,10 +30,22 @@ pub enum Msg {
     ApplyDate,
 }
 
+fn epoch_to_date_string(epoch: f64) -> String {
+    let start_date = Date::new(&JsValue::from_f64(epoch));
+    format!(
+        "{:04}-{:02}-{:02}",
+        start_date.get_full_year(),
+        start_date.get_month() + 1,
+        start_date.get_date(),
+    )
+}
 impl PageSpamList {
 
     fn date_range_form(&self, ctx: &Context<Self>) -> Html {
-        Column::new()
+        let start_date = epoch_to_date_string(self.start_date);
+        let end_date = epoch_to_date_string(self.end_date);
+
+        let panel = Column::new()
             .padding(2)
             .gap(1)
             //.attribute("style", "min-width:400px;min-height:300px;")
@@ -38,12 +54,14 @@ impl PageSpamList {
             .with_child(
                 Field::new()
                     .name("from")
+                    .default(start_date)
                     .input_type("date")
             )
             .with_child("To:")
             .with_child(
                 Field::new()
                     .name("to")
+                    .default(end_date)
                     .input_type("date")
             )
             .with_child(
@@ -55,7 +73,11 @@ impl PageSpamList {
                             .class("pwt-scheme-primary")
                             .onclick(ctx.link().callback(|_| Msg::ApplyDate))
                     )
-            )
+            );
+
+        Form::new()
+            .form_context(self.form_context.clone())
+            .with_child(panel)
             .into()
     }
 }
@@ -65,8 +87,21 @@ impl Component for PageSpamList {
     type Properties = ();
 
     fn create(ctx: &Context<Self>) -> Self {
+        let start_date = js_sys::Date::new_0();
+        start_date.set_hours(0);
+        start_date.set_minutes(0);
+        start_date.set_seconds(0);
+        start_date.set_milliseconds(0);
+
+        let mut start_date = start_date.get_time();
+        let end_date = start_date + 24.0*3600000.0;
+        start_date = end_date - 7.0*24.0*3600000.0;
+
         Self {
             state: ViewState::Normal,
+            start_date,
+            end_date,
+            form_context: FormContext::new(),
         }
     }
 
@@ -81,8 +116,13 @@ impl Component for PageSpamList {
                 true
             }
             Msg::ApplyDate => {
-                // Fixme
                 self.state = ViewState::Normal;
+
+                let start = self.form_context.read().get_field_value("from").unwrap();
+                self.start_date = Date::parse(start.as_str().unwrap());
+                let end = self.form_context.read().get_field_value("to").unwrap();
+                self.end_date = Date::parse(end.as_str().unwrap());
+
                 true
             }
             Msg::Preview(id) => {
@@ -96,6 +136,8 @@ impl Component for PageSpamList {
 
     fn view(&self, ctx: &Context<Self>) -> Html {
         let content = SpamList::new()
+            .starttime((self.start_date / 1000.0) as u64)
+            .endtime((self.end_date / 1000.0) as u64)
             .on_preview(ctx.link().callback(|id| Msg::Preview(id)));
 
         let dialog = (self.state == ViewState::ShowDialog).then(||  {

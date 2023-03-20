@@ -1,12 +1,12 @@
 use anyhow::{format_err, Error};
 
 use proxmox_schema::param_format_err;
-use serde_json::Value;
+use serde_json::{json, Value};
 use std::rc::Rc;
 
 use pwt::{prelude::*, widget::error_message};
 use yew::{
-    html::IntoEventCallback,
+    html::{IntoEventCallback, IntoPropValue},
     virtual_dom::{VComp, VNode},
 };
 //use yew::html::IntoEventCallback;
@@ -30,11 +30,23 @@ struct MailInfo {
 #[derive(Clone, PartialEq, Properties)]
 pub struct SpamList {
     on_preview: Option<Callback<String>>,
+    starttime: Option<u64>,
+    endtime: Option<u64>,
 }
 
 impl SpamList {
     pub fn new() -> Self {
         yew::props!(Self {})
+    }
+
+    pub fn starttime(mut self, epoch: impl IntoPropValue<Option<u64>>) -> Self  {
+        self.starttime = epoch.into_prop_value();
+        self
+    }
+
+    pub fn endtime(mut self, epoch: impl IntoPropValue<Option<u64>>) -> Self  {
+        self.endtime = epoch.into_prop_value();
+        self
     }
 
     pub fn on_preview(mut self, cb: impl IntoEventCallback<String>) -> Self {
@@ -53,9 +65,20 @@ pub struct PmgSpamList {
 
 impl PmgSpamList {
     fn load(&self, ctx: &Context<Self>) {
+        let props = ctx.props();
         let link = ctx.link().clone();
+        let mut param = json!({});
+        if let Some(starttime) = props.starttime {
+            param["starttime"] = starttime.into();
+        }
+        if let Some(endtime) = props.endtime {
+            param["endtime"] = endtime.into();
+        }
+
+
         wasm_bindgen_futures::spawn_local(async move {
-            let result = http_get::<Vec<MailInfo>>("/quarantine/spam", None).await;
+
+            let result = http_get::<Vec<MailInfo>>("/quarantine/spam", Some(param)).await;
             link.send_message(Msg::LoadResult(result));
         })
     }
@@ -113,6 +136,16 @@ impl Component for PmgSpamList {
                 self.data = result;
             }
         }
+        true
+    }
+
+    fn changed(&mut self, ctx: &Context<Self>, old_props: &Self::Properties) -> bool {
+        let props = ctx.props();
+
+        if props.starttime != old_props.starttime || props.endtime != old_props.endtime {
+            self.load(ctx);
+        }
+
         true
     }
 
