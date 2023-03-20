@@ -14,7 +14,15 @@ use yew::{
 use proxmox_yew_comp::http_get;
 use pwt::widget::{Column, Row};
 
-use serde::Deserialize;
+use serde::{Serialize, Deserialize};
+
+#[derive(Copy, Clone, Serialize, Default, PartialEq)]
+struct SpamListParam {
+    #[serde(skip_serializing_if = "Option::is_none")]
+    starttime: Option<u64>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    endtime: Option<u64>,
+}
 
 #[derive(Deserialize, Debug)]
 struct MailInfo {
@@ -30,8 +38,8 @@ struct MailInfo {
 #[derive(Clone, PartialEq, Properties)]
 pub struct SpamList {
     on_preview: Option<Callback<String>>,
-    starttime: Option<u64>,
-    endtime: Option<u64>,
+    #[prop_or_default]
+    param: SpamListParam,
 }
 
 impl SpamList {
@@ -40,12 +48,12 @@ impl SpamList {
     }
 
     pub fn starttime(mut self, epoch: impl IntoPropValue<Option<u64>>) -> Self  {
-        self.starttime = epoch.into_prop_value();
+        self.param.starttime = epoch.into_prop_value();
         self
     }
 
     pub fn endtime(mut self, epoch: impl IntoPropValue<Option<u64>>) -> Self  {
-        self.endtime = epoch.into_prop_value();
+        self.param.endtime = epoch.into_prop_value();
         self
     }
 
@@ -67,14 +75,7 @@ impl PmgSpamList {
     fn load(&self, ctx: &Context<Self>) {
         let props = ctx.props();
         let link = ctx.link().clone();
-        let mut param = json!({});
-        if let Some(starttime) = props.starttime {
-            param["starttime"] = starttime.into();
-        }
-        if let Some(endtime) = props.endtime {
-            param["endtime"] = endtime.into();
-        }
-
+        let mut param: Value = serde_json::to_value(props.param).unwrap();
 
         wasm_bindgen_futures::spawn_local(async move {
 
@@ -142,7 +143,7 @@ impl Component for PmgSpamList {
     fn changed(&mut self, ctx: &Context<Self>, old_props: &Self::Properties) -> bool {
         let props = ctx.props();
 
-        if props.starttime != old_props.starttime || props.endtime != old_props.endtime {
+        if props.param != old_props.param {
             self.load(ctx);
         }
 
