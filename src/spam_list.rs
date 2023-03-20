@@ -12,7 +12,7 @@ use yew::{
 //use yew::html::IntoEventCallback;
 
 use proxmox_yew_comp::http_get;
-use pwt::widget::{Column, Row};
+use pwt::widget::{Card, Column, Row};
 
 use serde::{Serialize, Deserialize};
 
@@ -85,7 +85,10 @@ impl PmgSpamList {
     }
 
     fn render_list_item(&self, ctx: &Context<Self>, item: &MailInfo) -> Html {
-        Row::new()
+        Card::new()
+            .class("pwt-d-flex")
+            .class("pwt-shape-none pwt-card-flat pwt-interactive")
+            .class("pwt-scheme-neutral")
             .padding_x(2)
             .padding_y(1)
             .border_bottom(true)
