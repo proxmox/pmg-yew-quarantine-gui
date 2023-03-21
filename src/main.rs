@@ -27,7 +27,7 @@ use pwt::prelude::*;
 use pwt::touch::{Fab, FabMenu, FabMenuAlign};
 use pwt::widget::{Column, Container, Dialog, ThemeLoader};
 
-use proxmox_yew_comp::http_login;
+use proxmox_yew_comp::{http_login, http_set_auth};
 use proxmox_yew_comp::{LoginInfo, LoginPanel, ProxmoxProduct};
 
 //http://192.168.3.106:8080/quarantine?ticket=PMGQUAR%253Adietmar%2540proxmox.com%253A6413A0A7%253A%253A5nZ1NaZiff2WnBwics9sFU6Q2Jj%252BUzhigel85zZt8ui9YkLWSJJ%252F5a1XJ71b9rtU0YwIVp7Nnk3PeHuulANqVaMQSSDELP1qGGj8f8Orj9ybDWXWi5JefM6%252BmE%252Fksvl6k%252F0ehrI1%252Blgd9kTSi6%252B1Fe8QxuPA5ZkIprovs1r6qb8u5903gclJ59AirOntGYj6LtKKbXAKc%252BL13N2b9tgF02vKRrjxObrviAZzJQIS95rl22oooHXcZfHWFonpVgBkXe3AAaboNrqbxBkmVplnV8xbdOVPUpUMnUNLlz3fJvmRdkQCSc3k5v7jhWk8vAEkvwg%252FRjtENBDt1A%252FhkClQlA%253D%253D
@@ -90,6 +90,11 @@ impl Component for PmgQuarantineApp {
     type Properties = ();
 
     fn create(ctx: &Context<Self>) -> Self {
+        // set auth info from cookie
+        let login_info = LoginInfo::from_cookie(ProxmoxProduct::PMG);
+        if let Some(login_info) = &login_info {
+            http_set_auth(login_info.clone());
+        }
         // Autologin with quartantine url and ticket
         let document = web_sys::window().unwrap().document().unwrap();
         let location = document.location().unwrap();
@@ -106,7 +111,7 @@ impl Component for PmgQuarantineApp {
                 }
             }
         }
-        Self { login_info: None }
+        Self { login_info }
     }
 
     fn view(&self, ctx: &Context<Self>) -> Html {
