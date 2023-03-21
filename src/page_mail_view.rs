@@ -1,12 +1,14 @@
-use serde_json::Value;
 use std::rc::Rc;
 
-use pwt::prelude::*;
+use serde_json::{json, Value};
+use anyhow::Error;
+
+use pwt::{prelude::*, widget::AlertDialog};
 use yew::{virtual_dom::{VComp, VNode}, html::IntoEventCallback};
 //use yew::html::IntoEventCallback;
 use yew_router::scope_ext::RouterScopeExt;
 
-use proxmox_yew_comp::http_get;
+use proxmox_yew_comp::http_post;
 use pwt::widget::{ActionIcon, Button, Container, Column, Row};
 use pwt::touch::{Fab, FabMenu, FabMenuAlign};
 
@@ -23,10 +25,34 @@ impl PageMailView {
     }
 }
 
+pub enum Msg {
+    ClearError,
+    ActionResult(Result<Value, Error>),
+}
 pub struct PmgPageMailView {
+    error: Option<String>,
 }
 
 impl PmgPageMailView {
+
+    fn action_callback(&self, ctx: &Context<Self>, action: &str) -> Callback<MouseEvent> {
+        let props = ctx.props();
+
+        let link = ctx.link().clone();
+        let param = json!({
+            "action": action,
+            "id": props.id,
+        });
+
+        Callback::from(move |_event: MouseEvent| {
+            let param = param.clone();
+            let link = link.clone();
+            wasm_bindgen_futures::spawn_local(async move {
+                let result = http_post("/quarantine/content", Some(param)).await;
+                link.send_message(Msg::ActionResult(result));
+            });
+        })
+    }
 
     fn top_bar(&self, ctx: &Context<Self>) -> Html {
         Row::new()
@@ -79,14 +105,48 @@ impl PmgPageMailView {
 }
 
 impl Component for PmgPageMailView {
-    type Message = ();
+    type Message = Msg;
     type Properties = PageMailView;
 
     fn create(_ctx: &Context<Self>) -> Self {
-        Self { }
+        Self { error: None }
+    }
+
+    fn update(&mut self, ctx: &Context<Self>, msg: Self::Message) -> bool {
+        match msg {
+            Msg::ClearError => {
+                self.error = None;
+            }
+            Msg::ActionResult(result) => {
+                log::info!("RESULT {:?}", result);
+
+                if let Err(err) = result {
+                    self.error = Some(err.to_string());
+                    log::info!("ERROR {:?}", self.error);
+                }
+            }
+        }
+        true
     }
 
     fn view(&self, ctx: &Context<Self>) -> Html {
+        let props = ctx.props();
+
+        let blacklist_button = Fab::new("fa fa-times")
+            .text("Blacklist")
+            .on_click(self.action_callback(ctx, "blacklist"));
+
+        let whitelist_button = Fab::new("fa fa-check")
+            .text("Whitelist")
+            .on_click(self.action_callback(ctx, "whitelist"));
+
+        let delete_button = Fab::new("fa fa-trash")
+            .text("Delete")
+            .on_click(self.action_callback(ctx, "delete"));
+
+        let deliver_button = Fab::new("fa fa-paper-plane")
+            .text("Deliver")
+            .on_click(self.action_callback(ctx, "deliver"));
 
         let fab = Container::new()
             .class("pwt-position-fixed")
@@ -95,16 +155,27 @@ impl Component for PmgPageMailView {
                 FabMenu::new()
                     .align(FabMenuAlign::End)
                     .main_button_class("pwt-scheme-primary")
-                    .with_child(Fab::new("fa fa-times").text("Blacklist"))
-                    .with_child(Fab::new("fa fa-check").text("Whitelist"))
-                    .with_child(Fab::new("fa fa-trash").text("Delete"))
-                    .with_child(Fab::new("fa fa-paper-plane").text("Deliver")),
+                    .with_child(blacklist_button)
+                    .with_child(whitelist_button)
+                    .with_child(delete_button)
+                    .with_child(deliver_button)
             );
+
+        let error_dialog = match &self.error {
+            Some(msg) => {
+                Some(
+                    AlertDialog::new(msg)
+                        .on_close(ctx.link().callback(|_| Msg::ClearError))
+                )
+            }
+            None => None,
+        };
 
         Column::new()
             .class("pwt-viewport")
             .with_child(self.top_bar(ctx))
             .with_child(self.content_view(ctx))
+            .with_optional_child(error_dialog)
             .with_child(fab)
             .into()
     }
