@@ -12,7 +12,7 @@ use proxmox_yew_comp::http_post;
 use pwt::widget::{ActionIcon, Button, Container, Column, Row};
 use pwt::touch::{Fab, FabMenu, FabMenuAlign};
 
-use super::Route;
+use super::{record_data_change, Route};
 
 #[derive(Clone, PartialEq, Properties)]
 pub struct PageMailView {
@@ -118,11 +118,12 @@ impl Component for PmgPageMailView {
                 self.error = None;
             }
             Msg::ActionResult(result) => {
-                log::info!("RESULT {:?}", result);
+                //log::info!("RESULT {:?}", result);
+                record_data_change();
 
                 if let Err(err) = result {
                     self.error = Some(err.to_string());
-                    log::info!("ERROR {:?}", self.error);
+                    //log::info!("ERROR {:?}", self.error);
                 }
             }
         }

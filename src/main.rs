@@ -32,6 +32,13 @@ use proxmox_yew_comp::{LoginInfo, LoginPanel, ProxmoxProduct};
 
 //http://192.168.3.106:8080/quarantine?ticket=PMGQUAR%253Adietmar%2540proxmox.com%253A6413A0A7%253A%253A5nZ1NaZiff2WnBwics9sFU6Q2Jj%252BUzhigel85zZt8ui9YkLWSJJ%252F5a1XJ71b9rtU0YwIVp7Nnk3PeHuulANqVaMQSSDELP1qGGj8f8Orj9ybDWXWi5JefM6%252BmE%252Fksvl6k%252F0ehrI1%252Blgd9kTSi6%252B1Fe8QxuPA5ZkIprovs1r6qb8u5903gclJ59AirOntGYj6LtKKbXAKc%252BL13N2b9tgF02vKRrjxObrviAZzJQIS95rl22oooHXcZfHWFonpVgBkXe3AAaboNrqbxBkmVplnV8xbdOVPUpUMnUNLlz3fJvmRdkQCSc3k5v7jhWk8vAEkvwg%252FRjtENBDt1A%252FhkClQlA%253D%253D
 
+use std::sync::atomic::{AtomicUsize, Ordering};
+static CHANGE_COUNTER: AtomicUsize = AtomicUsize::new(0);
+
+pub fn record_data_change() {
+    CHANGE_COUNTER.fetch_add(1, Ordering::SeqCst);
+}
+
 pub enum Msg {
     Login(LoginInfo),
     //Logout,
@@ -50,10 +57,13 @@ enum Route {
 fn switch(routes: Route) -> Html {
     let stack = match routes {
         Route::SpamList => {
-            vec![html! { <PageSpamList/> }]
+            vec![PageSpamList::new(CHANGE_COUNTER.load(Ordering::SeqCst)).into()]
         }
         Route::ViewMail { id } => {
-            vec![html! { <PageSpamList/> }, PageMailView::new(id).into()]
+            vec![
+                PageSpamList::new(CHANGE_COUNTER.load(Ordering::SeqCst)).into(),
+                PageMailView::new(id).into(),
+            ]
         }
         Route::NotFound => {
             vec![html! { <PageNotFound/> }]

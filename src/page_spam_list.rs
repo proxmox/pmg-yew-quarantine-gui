@@ -1,8 +1,11 @@
+use std::rc::Rc;
+
 use js_sys::Date;
 use wasm_bindgen::JsValue;
 
 use yew::prelude::*;
 use yew_router::scope_ext::RouterScopeExt;
+use yew::virtual_dom::{VComp, VNode};
 
 use pwt::prelude::*;
 use pwt::touch::{Fab};
@@ -11,12 +14,25 @@ use pwt::widget::form::{Field, Form, FormContext};
 
 use crate::{Route, SpamList, TopNavBar};
 
+#[derive(Clone, PartialEq, Properties)]
+pub struct PageSpamList {
+    reload_counter: usize,
+}
+
+impl PageSpamList {
+    pub fn new(reload_counter: usize) -> Self {
+        Self {
+            reload_counter,
+        }
+    }
+}
+
 #[derive(Copy, Clone, PartialEq)]
 pub enum ViewState {
     Normal,
     ShowDialog,
 }
-pub struct PageSpamList {
+pub struct PmgPageSpamList {
     state: ViewState,
     start_date: f64,
     end_date: f64,
@@ -39,7 +55,7 @@ fn epoch_to_date_string(epoch: f64) -> String {
         start_date.get_date(),
     )
 }
-impl PageSpamList {
+impl PmgPageSpamList {
 
     fn date_range_form(&self, ctx: &Context<Self>) -> Html {
         let start_date = epoch_to_date_string(self.start_date);
@@ -82,9 +98,9 @@ impl PageSpamList {
     }
 }
 
-impl Component for PageSpamList {
+impl Component for PmgPageSpamList {
     type Message = Msg;
-    type Properties = ();
+    type Properties = PageSpamList;
 
     fn create(ctx: &Context<Self>) -> Self {
         let start_date = js_sys::Date::new_0();
@@ -135,7 +151,8 @@ impl Component for PageSpamList {
     }
 
     fn view(&self, ctx: &Context<Self>) -> Html {
-        let content = SpamList::new()
+        let props = ctx.props();
+        let content = SpamList::new(props.reload_counter)
             .starttime((self.start_date / 1000.0) as u64)
             .endtime((self.end_date / 1000.0) as u64)
             .on_preview(ctx.link().callback(|id| Msg::Preview(id)));
@@ -162,5 +179,12 @@ impl Component for PageSpamList {
             .with_child(fab)
             .with_optional_child(dialog)
             .into()
+    }
+}
+
+impl Into<VNode> for PageSpamList {
+    fn into(self) -> VNode {
+        let comp = VComp::new::<PmgPageSpamList>(Rc::new(self), None);
+        VNode::from(comp)
     }
 }

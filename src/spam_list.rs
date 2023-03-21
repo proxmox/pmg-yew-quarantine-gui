@@ -40,11 +40,13 @@ pub struct SpamList {
     on_preview: Option<Callback<String>>,
     #[prop_or_default]
     param: SpamListParam,
+
+    reload_counter: usize,
 }
 
 impl SpamList {
-    pub fn new() -> Self {
-        yew::props!(Self {})
+    pub fn new(reload_counter: usize) -> Self {
+        yew::props!(Self { reload_counter })
     }
 
     pub fn starttime(mut self, epoch: impl IntoPropValue<Option<u64>>) -> Self  {
@@ -146,7 +148,7 @@ impl Component for PmgSpamList {
     fn changed(&mut self, ctx: &Context<Self>, old_props: &Self::Properties) -> bool {
         let props = ctx.props();
 
-        if props.param != old_props.param {
+        if props.param != old_props.param || props.reload_counter != old_props.reload_counter {
             self.load(ctx);
         }
 
