@@ -19,6 +19,7 @@ pub use page_not_found::PageNotFound;
 use log::Log;
 use percent_encoding::percent_decode_str;
 
+use yew::html::IntoEventCallback;
 use yew::prelude::*;
 use yew_router::scope_ext::RouterScopeExt;
 use yew_router::{HashRouter, Routable, Switch};
@@ -26,17 +27,39 @@ use yew_router::{HashRouter, Routable, Switch};
 use pwt::prelude::*;
 use pwt::touch::{Fab, FabMenu, FabMenuAlign};
 use pwt::widget::{Column, Container, Dialog, ThemeLoader};
+use pwt::state::{SharedState, SharedStateObserver};
 
 use proxmox_yew_comp::{http_login, http_set_auth};
 use proxmox_yew_comp::{LoginInfo, LoginPanel, ProxmoxProduct};
 
 //http://192.168.3.106:8080/quarantine?ticket=PMGQUAR%253Adietmar%2540proxmox.com%253A6413A0A7%253A%253A5nZ1NaZiff2WnBwics9sFU6Q2Jj%252BUzhigel85zZt8ui9YkLWSJJ%252F5a1XJ71b9rtU0YwIVp7Nnk3PeHuulANqVaMQSSDELP1qGGj8f8Orj9ybDWXWi5JefM6%252BmE%252Fksvl6k%252F0ehrI1%252Blgd9kTSi6%252B1Fe8QxuPA5ZkIprovs1r6qb8u5903gclJ59AirOntGYj6LtKKbXAKc%252BL13N2b9tgF02vKRrjxObrviAZzJQIS95rl22oooHXcZfHWFonpVgBkXe3AAaboNrqbxBkmVplnV8xbdOVPUpUMnUNLlz3fJvmRdkQCSc3k5v7jhWk8vAEkvwg%252FRjtENBDt1A%252FhkClQlA%253D%253D
 
-use std::sync::atomic::{AtomicUsize, Ordering};
-static CHANGE_COUNTER: AtomicUsize = AtomicUsize::new(0);
+#[derive(Clone, PartialEq)]
+pub struct ReloadController {
+    pub state: SharedState<usize>,
+}
 
-pub fn record_data_change() {
-    CHANGE_COUNTER.fetch_add(1, Ordering::SeqCst);
+impl ReloadController {
+    pub fn new() -> Self {
+        Self {
+            state: SharedState::new(0),
+        }
+    }
+
+    pub fn reload(&self) {
+        let mut guard = self.state.write();
+        **guard = **guard + 1;
+    }
+
+    pub fn add_listener(&self, cb: impl IntoEventCallback<ReloadController>) -> SharedStateObserver<usize> {
+        let cb = cb.into_event_callback();
+        let me = self.clone();
+        self.state.add_listener(move |_| {
+            if let Some(cb) = &cb {
+                cb.emit(me.clone());
+            }
+        })
+    }
 }
 
 pub enum Msg {
@@ -54,15 +77,16 @@ enum Route {
     #[at("/404")]
     NotFound,
 }
-fn switch(routes: Route) -> Html {
+
+fn switch(routes: Route, reload_controller: ReloadController) -> Html {
     let stack = match routes {
         Route::SpamList => {
-            vec![PageSpamList::new(CHANGE_COUNTER.load(Ordering::SeqCst)).into()]
+            vec![PageSpamList::new(reload_controller).into()]
         }
         Route::ViewMail { id } => {
             vec![
-                PageSpamList::new(CHANGE_COUNTER.load(Ordering::SeqCst)).into(),
-                PageMailView::new(id).into(),
+                PageSpamList::new(reload_controller.clone()).into(),
+                PageMailView::new(reload_controller, id).into(),
             ]
         }
         Route::NotFound => {
@@ -75,6 +99,7 @@ fn switch(routes: Route) -> Html {
 
 struct PmgQuarantineApp {
     login_info: Option<LoginInfo>,
+    reload_controller: ReloadController,
 }
 
 impl PmgQuarantineApp {
@@ -121,13 +146,20 @@ impl Component for PmgQuarantineApp {
                 }
             }
         }
-        Self { login_info }
+        Self {
+            login_info,
+            reload_controller: ReloadController::new(),
+        }
     }
 
     fn view(&self, ctx: &Context<Self>) -> Html {
+        let reload_controller = self.reload_controller.clone();
+        let render = move |routes: Route| {
+            switch(routes, reload_controller.clone())
+        };
         ThemeLoader::new(html! {
             <HashRouter> // fixme:  basename="/quarantine/">
-                <Switch<Route> render={switch} />
+                <Switch<Route> {render} />
             </HashRouter>
         })
         .into()
@@ -139,7 +171,7 @@ impl Component for PmgQuarantineApp {
                 self.login_info = Some(info);
                 let document = web_sys::window().unwrap().document().unwrap();
                 let location = document.location().unwrap();
-                location.replace("/");
+                let _ = location.replace("/");
             }
         }
         true

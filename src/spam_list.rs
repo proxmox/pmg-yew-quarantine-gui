@@ -12,9 +12,12 @@ use yew::{
 //use yew::html::IntoEventCallback;
 
 use proxmox_yew_comp::http_get;
+use pwt::state::SharedStateObserver;
 use pwt::widget::{Card, Column, Row};
 
 use serde::{Serialize, Deserialize};
+
+use crate::ReloadController;
 
 #[derive(Copy, Clone, Serialize, Default, PartialEq)]
 struct SpamListParam {
@@ -41,12 +44,12 @@ pub struct SpamList {
     #[prop_or_default]
     param: SpamListParam,
 
-    reload_counter: usize,
+    reload_controller: ReloadController,
 }
 
 impl SpamList {
-    pub fn new(reload_counter: usize) -> Self {
-        yew::props!(Self { reload_counter })
+    pub fn new(reload_controller: ReloadController) -> Self {
+         yew::props!(Self { reload_controller })
     }
 
     pub fn starttime(mut self, epoch: impl IntoPropValue<Option<u64>>) -> Self  {
@@ -66,11 +69,13 @@ impl SpamList {
 }
 
 pub enum Msg {
+    Reload,
     LoadResult(Result<Vec<MailInfo>, Error>),
 }
 
 pub struct PmgSpamList {
     data: Result<Vec<MailInfo>, Error>,
+    reload_observer: SharedStateObserver<usize>,
 }
 
 impl PmgSpamList {
@@ -129,15 +134,24 @@ impl Component for PmgSpamList {
     type Properties = SpamList;
 
     fn create(ctx: &Context<Self>) -> Self {
+        let props = ctx.props();
+
+        let reload_observer = props.reload_controller
+            .add_listener(ctx.link().callback(|_| Msg::Reload));
+
         let me = Self {
             data: Err(format_err!("no data loaded")),
+            reload_observer,
         };
         me.load(ctx);
         me
     }
 
-    fn update(&mut self, _ctx: &Context<Self>, msg: Self::Message) -> bool {
+    fn update(&mut self, ctx: &Context<Self>, msg: Self::Message) -> bool {
         match msg {
+            Msg::Reload => {
+                self.load(ctx);
+            }
             Msg::LoadResult(result) => {
                 self.data = result;
             }
@@ -148,7 +162,12 @@ impl Component for PmgSpamList {
     fn changed(&mut self, ctx: &Context<Self>, old_props: &Self::Properties) -> bool {
         let props = ctx.props();
 
-        if props.param != old_props.param || props.reload_counter != old_props.reload_counter {
+        if props.reload_controller != old_props.reload_controller {
+            self.reload_observer = props.reload_controller
+                .add_listener(ctx.link().callback(|_| Msg::Reload));
+        }
+
+        if props.param != old_props.param {
             self.load(ctx);
         }
 
