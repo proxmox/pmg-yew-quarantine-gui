@@ -102,7 +102,7 @@ impl Component for PmgPageSpamList {
     type Message = Msg;
     type Properties = PageSpamList;
 
-    fn create(ctx: &Context<Self>) -> Self {
+    fn create(_ctx: &Context<Self>) -> Self {
         let start_date = js_sys::Date::new_0();
         start_date.set_hours(0);
         start_date.set_minutes(0);

@@ -4,12 +4,12 @@ use serde_json::{json, Value};
 use anyhow::Error;
 
 use pwt::{prelude::*, widget::AlertDialog};
-use yew::{virtual_dom::{VComp, VNode}, html::IntoEventCallback};
+use yew::virtual_dom::{VComp, VNode};
 //use yew::html::IntoEventCallback;
 use yew_router::scope_ext::RouterScopeExt;
 
 use proxmox_yew_comp::http_post;
-use pwt::widget::{ActionIcon, Button, Container, Column, Row};
+use pwt::widget::{ActionIcon, Container, Column, Row};
 use pwt::touch::{Fab, FabMenu, FabMenuAlign};
 
 use super::{ReloadController, Route};
@@ -136,8 +136,6 @@ impl Component for PmgPageMailView {
     }
 
     fn view(&self, ctx: &Context<Self>) -> Html {
-        let props = ctx.props();
-
         let blacklist_button = Fab::new("fa fa-times")
             .text("Blacklist")
             .on_click(self.action_callback(ctx, "blacklist"));

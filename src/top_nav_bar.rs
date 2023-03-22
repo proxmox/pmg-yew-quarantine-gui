@@ -5,8 +5,7 @@ use yew::virtual_dom::{VComp, VNode};
 use yew::html::IntoEventCallback;
 
 use pwt::state::{Theme, ThemeObserver};
-use pwt::widget::{Button, ThemeModeSelector, Row};
-use proxmox_yew_comp::HelpButton;
+use pwt::widget::{ThemeModeSelector, Row};
 
 #[derive(Clone, PartialEq, Properties)]
 pub struct TopNavBar {
@@ -57,9 +56,7 @@ impl Component for PmgTopNavBar {
         }
     }
 
-    fn view(&self, ctx: &Context<Self>) -> Html {
-        let props = ctx.props();
-
+    fn view(&self, _ctx: &Context<Self>) -> Html {
         let button_group = Row::new()
             .gap(1)
             //.with_child(HelpButton::new().class("neutral"))

@@ -2,15 +2,12 @@ use std::rc::Rc;
 
 use pwt::prelude::*;
 use yew::{
-    html::IntoEventCallback,
     virtual_dom::{VComp, VNode},
 };
 //use yew::html::IntoEventCallback;
 use yew::virtual_dom::Key;
-use yew_router::scope_ext::RouterScopeExt;
 
-use proxmox_yew_comp::http_get;
-use pwt::widget::{ActionIcon, Button, Column, Container, Row};
+use pwt::widget::Container;
 
 #[derive(Copy, Clone, PartialEq)]
 pub enum PageAnimationStyle {
@@ -68,15 +65,13 @@ impl Component for PmgPageStack {
     type Message = Msg;
     type Properties = PageStack;
 
-    fn create(ctx: &Context<Self>) -> Self {
-        let props = ctx.props();
-
+    fn create(_ctx: &Context<Self>) -> Self {
         Self {
             state: ViewState::Normal,
         }
     }
 
-    fn update(&mut self, ctx: &Context<Self>, msg: Self::Message) -> bool {
+    fn update(&mut self, _ctx: &Context<Self>, msg: Self::Message) -> bool {
         match msg {
             Msg::AnimationEnd => {
                 log::info!("AnimationEnd");
@@ -127,7 +122,7 @@ impl Component for PmgPageStack {
                 _ => "pwt-page-hidden",
             };
 
-            let mut page = Container::new()
+            let page = Container::new()
                 .class("pwt-bg-color-neutral")
                 .class("pwt-page-container")
                 .class(animation.clone())

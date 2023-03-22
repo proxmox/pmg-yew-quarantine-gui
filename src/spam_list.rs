@@ -1,7 +1,6 @@
 use anyhow::{format_err, Error};
 
-use proxmox_schema::param_format_err;
-use serde_json::{json, Value};
+use serde_json::Value;
 use std::rc::Rc;
 
 use pwt::{prelude::*, widget::error_message};
@@ -13,14 +12,14 @@ use yew::{
 
 use proxmox_yew_comp::http_get;
 use pwt::state::SharedStateObserver;
-use pwt::widget::{Card, Column, Row};
+use pwt::widget::{Card, Column};
 
 use serde::{Serialize, Deserialize};
 
 use crate::ReloadController;
 
 #[derive(Copy, Clone, Serialize, Default, PartialEq)]
-struct SpamListParam {
+pub struct SpamListParam {
     #[serde(skip_serializing_if = "Option::is_none")]
     starttime: Option<u64>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -28,7 +27,7 @@ struct SpamListParam {
 }
 
 #[derive(Deserialize, Debug)]
-struct MailInfo {
+pub struct MailInfo {
     pub bytes: i64,
     pub from: String,
     pub id: String,
@@ -82,10 +81,9 @@ impl PmgSpamList {
     fn load(&self, ctx: &Context<Self>) {
         let props = ctx.props();
         let link = ctx.link().clone();
-        let mut param: Value = serde_json::to_value(props.param).unwrap();
+        let param: Value = serde_json::to_value(props.param).unwrap();
 
         wasm_bindgen_futures::spawn_local(async move {
-
             let result = http_get::<Vec<MailInfo>>("/quarantine/spam", Some(param)).await;
             link.send_message(Msg::LoadResult(result));
         })

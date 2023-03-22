@@ -16,21 +16,17 @@ pub use page_spam_list::PageSpamList;
 mod page_not_found;
 pub use page_not_found::PageNotFound;
 
-use log::Log;
 use percent_encoding::percent_decode_str;
 
 use yew::html::IntoEventCallback;
 use yew::prelude::*;
-use yew_router::scope_ext::RouterScopeExt;
 use yew_router::{HashRouter, Routable, Switch};
 
-use pwt::prelude::*;
-use pwt::touch::{Fab, FabMenu, FabMenuAlign};
-use pwt::widget::{Column, Container, Dialog, ThemeLoader};
+use pwt::widget::ThemeLoader;
 use pwt::state::{SharedState, SharedStateObserver};
 
 use proxmox_yew_comp::{http_login, http_set_auth};
-use proxmox_yew_comp::{LoginInfo, LoginPanel, ProxmoxProduct};
+use proxmox_yew_comp::{LoginInfo, ProxmoxProduct};
 
 //http://192.168.3.106:8080/quarantine?ticket=PMGQUAR%253Adietmar%2540proxmox.com%253A6413A0A7%253A%253A5nZ1NaZiff2WnBwics9sFU6Q2Jj%252BUzhigel85zZt8ui9YkLWSJJ%252F5a1XJ71b9rtU0YwIVp7Nnk3PeHuulANqVaMQSSDELP1qGGj8f8Orj9ybDWXWi5JefM6%252BmE%252Fksvl6k%252F0ehrI1%252Blgd9kTSi6%252B1Fe8QxuPA5ZkIprovs1r6qb8u5903gclJ59AirOntGYj6LtKKbXAKc%252BL13N2b9tgF02vKRrjxObrviAZzJQIS95rl22oooHXcZfHWFonpVgBkXe3AAaboNrqbxBkmVplnV8xbdOVPUpUMnUNLlz3fJvmRdkQCSc3k5v7jhWk8vAEkvwg%252FRjtENBDt1A%252FhkClQlA%253D%253D
 
@@ -152,7 +148,7 @@ impl Component for PmgQuarantineApp {
         }
     }
 
-    fn view(&self, ctx: &Context<Self>) -> Html {
+    fn view(&self, _ctx: &Context<Self>) -> Html {
         let reload_controller = self.reload_controller.clone();
         let render = move |routes: Route| {
             switch(routes, reload_controller.clone())
@@ -165,7 +161,7 @@ impl Component for PmgQuarantineApp {
         .into()
     }
 
-    fn update(&mut self, ctx: &Context<Self>, msg: Self::Message) -> bool {
+    fn update(&mut self, _ctx: &Context<Self>, msg: Self::Message) -> bool {
         match msg {
             Msg::Login(info) => {
                 self.login_info = Some(info);
