@@ -1,6 +1,3 @@
-mod page_stack;
-pub use page_stack::PageStack;
-
 mod top_nav_bar;
 pub use top_nav_bar::TopNavBar;
 
@@ -24,6 +21,7 @@ use yew_router::{HashRouter, Routable, Switch};
 
 use pwt::widget::ThemeLoader;
 use pwt::state::{SharedState, SharedStateObserver};
+use pwt::touch::PageStack;
 
 use proxmox_yew_comp::{http_login, http_set_auth};
 use proxmox_yew_comp::{LoginInfo, ProxmoxProduct};
