@@ -152,9 +152,11 @@ impl Component for PmgQuarantineApp {
             switch(routes, reload_controller.clone())
         };
         ThemeLoader::new(html! {
-            <HashRouter> // fixme:  basename="/quarantine/">
-                <Switch<Route> {render} />
-            </HashRouter>
+            <div class="pwt-viewport">
+                <HashRouter> // fixme:  basename="/quarantine/">
+                    <Switch<Route> {render} />
+                </HashRouter>
+            </div>
         })
         .into()
     }
