@@ -19,11 +19,12 @@ wasm-bindgen-futures = "0.4"
 url = "2.1"
 percent-encoding = "2.1"
 
-proxmox-schema = "1"
+proxmox-schema = "2"
 proxmox-time = "1"
 proxmox-uuid = "1"
 
-pwt = { version = "0.2", features = [ "proxmox-schema" ] }
+pwt = "0.2"
 pwt-macros = "0.1"
 
+proxmox-login = "0.1"
 proxmox-yew-comp = "0.1"
