@@ -16,7 +16,8 @@ use yew::html::IntoEventCallback;
 use yew::prelude::*;
 use yew_router::Routable;
 
-use pwt::state::{SharedState, SharedStateObserver};
+use pwt::prelude::*;
+use pwt::state::{LanguageInfo, SharedState, SharedStateObserver};
 use pwt::touch::MaterialApp;
 
 use proxmox_login::{Authentication, TicketResult};
@@ -174,6 +175,11 @@ fn main() {
     proxmox_yew_comp::http_setup(&ExistingProduct::PMG);
 
     pwt::state::set_available_themes(&["Mobile"]);
+    pwt::state::set_available_languages(vec![LanguageInfo::new(
+        "en",
+        "English",
+        gettext_noop("English"),
+    )]);
     pwt::props::set_http_get_method(
         |url| async move { proxmox_yew_comp::http_get(&url, None).await },
     );
