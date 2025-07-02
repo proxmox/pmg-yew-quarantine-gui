@@ -1,4 +1,7 @@
 mod spam_list;
+
+use anyhow::Error;
+use serde_json::{json, Value};
 pub use spam_list::SpamList;
 
 mod page_mail_view;
@@ -23,8 +26,8 @@ use pwt::touch::MaterialApp;
 
 use proxmox_login::Authentication;
 use proxmox_yew_comp::{
-    authentication_from_cookie, http_set_auth, register_auth_observer, stop_ticket_refresh_loop,
-    AuthObserver, ExistingProduct,
+    authentication_from_cookie, http_post, http_set_auth, register_auth_observer,
+    stop_ticket_refresh_loop, AuthObserver, ExistingProduct,
 };
 
 pub enum Msg {
@@ -112,6 +115,33 @@ impl Component for PmgQuarantineApp {
         }
         true
     }
+}
+
+#[derive(Clone, Copy, PartialEq)]
+pub(crate) enum MailAction {
+    Deliver,
+    Delete,
+    Whitelist,
+    Blacklist,
+}
+
+impl std::fmt::Display for MailAction {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        f.write_str(match self {
+            MailAction::Deliver => "deliver",
+            MailAction::Delete => "delete",
+            MailAction::Whitelist => "whitelist",
+            MailAction::Blacklist => "blacklist",
+        })
+    }
+}
+
+pub(crate) async fn mail_action(id: &str, action: MailAction) -> Result<Value, Error> {
+    let param = json!({
+        "action": action.to_string(),
+        "id": id,
+    });
+    http_post("/quarantine/content", Some(param)).await
 }
 
 fn main() {

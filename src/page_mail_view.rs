@@ -1,7 +1,7 @@
 use std::rc::Rc;
 
 use anyhow::Error;
-use serde_json::{json, Value};
+use serde_json::Value;
 
 use pwt::{prelude::*, widget::AlertDialog};
 use yew::virtual_dom::{VComp, VNode};
@@ -11,7 +11,7 @@ use pwt::css::FlexFit;
 use pwt::touch::{ApplicationBar, FabMenu, FabMenuEntry, Scaffold};
 use pwt::widget::Container;
 
-use proxmox_yew_comp::http_post;
+use crate::{mail_action, MailAction};
 
 #[derive(Clone, PartialEq, Properties)]
 pub struct PageMailView {
@@ -33,20 +33,17 @@ pub struct PmgPageMailView {
 }
 
 impl PmgPageMailView {
-    fn action_callback(&self, ctx: &Context<Self>, action: &str) -> Callback<MouseEvent> {
+    fn action_callback(&self, ctx: &Context<Self>, action: MailAction) -> Callback<MouseEvent> {
         let props = ctx.props();
 
         let link = ctx.link().clone();
-        let param = json!({
-            "action": action,
-            "id": props.id,
-        });
+        let id = props.id.clone();
 
         Callback::from(move |_event: MouseEvent| {
-            let param = param.clone();
             let link = link.clone();
+            let id = id.clone();
             wasm_bindgen_futures::spawn_local(async move {
-                let result = http_post("/quarantine/content", Some(param)).await;
+                let result = mail_action(&id, action).await;
                 link.send_message(Msg::ActionResult(result));
             });
         })
@@ -92,22 +89,22 @@ impl Component for PmgPageMailView {
             .with_child(FabMenuEntry::new(
                 tr!("Deliver"),
                 "fa fa-paper-plane",
-                self.action_callback(ctx, "deliver"),
+                self.action_callback(ctx, MailAction::Deliver),
             ))
             .with_child(FabMenuEntry::new(
                 tr!("Delete"),
                 "fa fa-trash",
-                self.action_callback(ctx, "delete"),
+                self.action_callback(ctx, MailAction::Delete),
             ))
             .with_child(FabMenuEntry::new(
                 tr!("Whitelist"),
                 "fa fa-check",
-                self.action_callback(ctx, "whitelist"),
+                self.action_callback(ctx, MailAction::Whitelist),
             ))
             .with_child(FabMenuEntry::new(
                 tr!("Blacklist"),
                 "fa fa-times",
-                self.action_callback(ctx, "blacklist"),
+                self.action_callback(ctx, MailAction::Blacklist),
             ));
 
         let error_dialog = match &self.error {
