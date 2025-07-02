@@ -3,13 +3,10 @@ use std::rc::Rc;
 use anyhow::Error;
 use serde_json::Value;
 
-use pwt::{prelude::*, widget::AlertDialog};
 use yew::virtual_dom::{VComp, VNode};
-//use yew::html::IntoEventCallback;
 
-use pwt::css::FlexFit;
-use pwt::touch::{ApplicationBar, FabMenu, FabMenuEntry, Scaffold};
-use pwt::widget::Container;
+use pwt::prelude::*;
+use pwt::touch::{ApplicationBar, FabMenu, FabMenuEntry, Scaffold, SnackBar, SnackBarContextExt};
 
 use crate::{mail_action, MailAction};
 
@@ -25,12 +22,9 @@ impl PageMailView {
 }
 
 pub enum Msg {
-    ClearError,
     ActionResult(Result<Value, Error>),
 }
-pub struct PmgPageMailView {
-    error: Option<String>,
-}
+pub struct PmgPageMailView {}
 
 impl PmgPageMailView {
     fn action_callback(&self, ctx: &Context<Self>, action: MailAction) -> Callback<MouseEvent> {
@@ -65,18 +59,15 @@ impl Component for PmgPageMailView {
     type Properties = PageMailView;
 
     fn create(_ctx: &Context<Self>) -> Self {
-        Self { error: None }
+        Self {}
     }
 
-    fn update(&mut self, _ctx: &Context<Self>, msg: Self::Message) -> bool {
+    fn update(&mut self, ctx: &Context<Self>, msg: Self::Message) -> bool {
         match msg {
-            Msg::ClearError => {
-                self.error = None;
-            }
             Msg::ActionResult(result) => {
                 if let Err(err) = result {
-                    self.error = Some(err.to_string());
-                    //log::info!("ERROR {:?}", self.error);
+                    ctx.link()
+                        .show_snackbar(SnackBar::new().message(err.to_string()));
                 }
             }
         }
@@ -107,21 +98,9 @@ impl Component for PmgPageMailView {
                 self.action_callback(ctx, MailAction::Blacklist),
             ));
 
-        let error_dialog = match &self.error {
-            Some(msg) => {
-                Some(AlertDialog::new(msg).on_close(ctx.link().callback(|_| Msg::ClearError)))
-            }
-            None => None,
-        };
-
         Scaffold::new()
             .application_bar(ApplicationBar::new().title(tr!("Preview")))
-            .body(
-                Container::new()
-                    .class(FlexFit)
-                    .with_child(self.content_view(ctx))
-                    .with_optional_child(error_dialog),
-            )
+            .body(self.content_view(ctx))
             .favorite_action_button(fab)
             .into()
     }
