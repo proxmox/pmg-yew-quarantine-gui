@@ -66,16 +66,16 @@ impl PmgPageSpamList {
         let panel = Column::new()
             .padding(2)
             .gap(1)
-            //.attribute("style", "min-width:400px;min-height:300px;")
+            .min_width("70vw")
             .class("pwt-flex-fill")
-            .with_child("From:")
+            .with_child(tr!("From:"))
             .with_child(
                 Field::new()
                     .name("from")
                     .default(start_date)
                     .input_type(InputType::Date),
             )
-            .with_child("To:")
+            .with_child(tr!("To:"))
             .with_child(
                 Field::new()
                     .name("to")
@@ -84,7 +84,7 @@ impl PmgPageSpamList {
             )
             .with_child(
                 Row::new().class("pwt-pt-2").with_flex_spacer().with_child(
-                    Button::new("Apply")
+                    Button::new(tr!("Apply"))
                         .class("pwt-scheme-primary")
                         .onclick(ctx.link().callback(|_| Msg::ApplyDate)),
                 ),
