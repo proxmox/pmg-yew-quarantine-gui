@@ -8,7 +8,7 @@ use yew::virtual_dom::{VComp, VNode};
 //use yew::html::IntoEventCallback;
 
 use pwt::css::FlexFit;
-use pwt::touch::{ApplicationBar, FabMenu, FabMenuAlign, FabMenuEntry, Scaffold};
+use pwt::touch::{ApplicationBar, FabMenu, FabMenuEntry, Scaffold};
 use pwt::widget::Container;
 
 use proxmox_yew_comp::http_post;
@@ -87,37 +87,28 @@ impl Component for PmgPageMailView {
     }
 
     fn view(&self, ctx: &Context<Self>) -> Html {
-        let blacklist_button = FabMenuEntry::new(
-            tr!("Blacklist"),
-            "fa fa-times",
-            self.action_callback(ctx, "blacklist"),
-        );
-
-        let whitelist_button = FabMenuEntry::new(
-            tr!("Whitelist"),
-            "fa fa-check",
-            self.action_callback(ctx, "whitelist"),
-        );
-
-        let delete_button = FabMenuEntry::new(
-            tr!("Delete"),
-            "fa fa-trash",
-            self.action_callback(ctx, "delete"),
-        );
-
-        let deliver_button = FabMenuEntry::new(
-            tr!("Deliver"),
-            "fa fa-paper-plane",
-            self.action_callback(ctx, "deliver"),
-        );
-
         let fab = FabMenu::new()
-            .align(FabMenuAlign::End)
-            .main_button_class("pwt-scheme-primary")
-            .with_child(blacklist_button)
-            .with_child(whitelist_button)
-            .with_child(delete_button)
-            .with_child(deliver_button);
+            .main_icon_class("fa fa-bars")
+            .with_child(FabMenuEntry::new(
+                tr!("Deliver"),
+                "fa fa-paper-plane",
+                self.action_callback(ctx, "deliver"),
+            ))
+            .with_child(FabMenuEntry::new(
+                tr!("Delete"),
+                "fa fa-trash",
+                self.action_callback(ctx, "delete"),
+            ))
+            .with_child(FabMenuEntry::new(
+                tr!("Whitelist"),
+                "fa fa-check",
+                self.action_callback(ctx, "whitelist"),
+            ))
+            .with_child(FabMenuEntry::new(
+                tr!("Blacklist"),
+                "fa fa-times",
+                self.action_callback(ctx, "blacklist"),
+            ));
 
         let error_dialog = match &self.error {
             Some(msg) => {
