@@ -10,7 +10,8 @@ pub use page_spam_list::PageSpamList;
 mod page_not_found;
 pub use page_not_found::PageNotFound;
 
-use percent_encoding::percent_decode_str;
+mod page_login;
+pub use page_login::PageLogin;
 
 use gloo_utils::document;
 use yew::prelude::*;
@@ -20,8 +21,10 @@ use pwt::prelude::*;
 use pwt::state::LanguageInfo;
 use pwt::touch::MaterialApp;
 
-use proxmox_login::{Authentication, TicketResult};
-use proxmox_yew_comp::{authentication_from_cookie, http_login, http_set_auth, ExistingProduct};
+use proxmox_login::Authentication;
+use proxmox_yew_comp::{
+    authentication_from_cookie, http_set_auth, stop_ticket_refresh_loop, ExistingProduct,
+};
 
 pub enum Msg {
     Login(Authentication),
@@ -59,61 +62,33 @@ struct PmgQuarantineApp {
     login_info: Option<Authentication>,
 }
 
-impl PmgQuarantineApp {
-    fn ticket_login(ctx: &Context<Self>, username: String, ticket: String) {
-        let link = ctx.link().clone();
-
-        wasm_bindgen_futures::spawn_local(async move {
-            match http_login(username, ticket, "quarantine").await {
-                Ok(TicketResult::Full(info)) => {
-                    link.send_message(Msg::Login(info));
-                }
-                Ok(TicketResult::HttpOnly(info)) => {
-                    link.send_message(Msg::Login(info));
-                }
-                Ok(TicketResult::TfaRequired(_)) => {
-                    log::error!("ERROR: TFA required, but not implemenmted");
-                }
-                Err(err) => {
-                    log::error!("ERROR: {:?}", err);
-                    //link.send_message(Msg::LoginError(err.to_string()));
-                }
-            }
-        });
-    }
-}
-
 impl Component for PmgQuarantineApp {
     type Message = Msg;
     type Properties = ();
 
-    fn create(ctx: &Context<Self>) -> Self {
+    fn create(_ctx: &Context<Self>) -> Self {
         // set auth info from cookie
         let login_info = authentication_from_cookie(&ExistingProduct::PMG);
         if let Some(login_info) = &login_info {
             http_set_auth(login_info.clone());
-        }
-        // Autologin with quartantine url and ticket
-        let document = web_sys::window().unwrap().document().unwrap();
-        let location = document.location().unwrap();
-        let path = location.pathname().unwrap();
-        if path == "/quarantine" {
-            let search = location.search().unwrap();
-            let param = web_sys::UrlSearchParams::new_with_str(&search).unwrap();
-            if let Some(ticket) = param.get("ticket") {
-                let ticket = percent_decode_str(&ticket).decode_utf8_lossy();
-                if ticket.starts_with("PMGQUAR:") {
-                    if let Some(username) = ticket.split(":").nth(1) {
-                        Self::ticket_login(ctx, username.to_string(), ticket.to_string());
-                    }
-                }
+            if login_info.ticket.to_string().starts_with("PMGQUAR:") {
+                stop_ticket_refresh_loop();
             }
         }
         Self { login_info }
     }
 
-    fn view(&self, _ctx: &Context<Self>) -> Html {
-        MaterialApp::new(switch).into()
+    fn view(&self, ctx: &Context<Self>) -> Html {
+        let link = ctx.link().clone();
+        let logged_in = self.login_info.is_some();
+        MaterialApp::new(move |path: &str| {
+            if logged_in {
+                switch(path)
+            } else {
+                vec![PageLogin::new().on_login(link.callback(Msg::Login)).into()]
+            }
+        })
+        .into()
     }
 
     fn update(&mut self, _ctx: &Context<Self>, msg: Self::Message) -> bool {
