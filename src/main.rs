@@ -173,6 +173,7 @@ impl Component for PmgQuarantineApp {
 fn main() {
     proxmox_yew_comp::http_setup(&ExistingProduct::PMG);
 
+    pwt::state::set_available_themes(&["Mobile"]);
     pwt::props::set_http_get_method(
         |url| async move { proxmox_yew_comp::http_get(&url, None).await },
     );

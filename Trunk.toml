@@ -1,4 +1,4 @@
 [[hooks]]
 stage="pre_build"
-command="sass"
-command_arguments= ["pwt-assets/scss/material-yew-style.scss", "dist/.stage/material-yew-style.css"]
+command="rust-grass"
+command_arguments= ["pwt-assets/scss/mobile-yew-style.scss", "dist/.stage/mobile-yew-style.css"]
