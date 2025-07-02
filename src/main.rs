@@ -1,6 +1,3 @@
-mod top_nav_bar;
-pub use top_nav_bar::TopNavBar;
-
 mod spam_list;
 pub use spam_list::SpamList;
 
@@ -17,11 +14,10 @@ use percent_encoding::percent_decode_str;
 
 use yew::html::IntoEventCallback;
 use yew::prelude::*;
-use yew_router::{HashRouter, Routable, Switch};
+use yew_router::Routable;
 
 use pwt::state::{SharedState, SharedStateObserver};
-use pwt::touch::PageStack;
-use pwt::widget::ThemeLoader;
+use pwt::touch::MaterialApp;
 
 use proxmox_login::{Authentication, TicketResult};
 use proxmox_yew_comp::{authentication_from_cookie, http_login, http_set_auth, ExistingProduct};
@@ -75,8 +71,10 @@ enum Route {
     NotFound,
 }
 
-fn switch(routes: Route, reload_controller: ReloadController) -> Html {
-    let stack = match routes {
+fn switch(route: &str, reload_controller: ReloadController) -> Vec<Html> {
+    let routes = Routable::recognize(route).unwrap();
+
+    match routes {
         Route::SpamList => {
             vec![PageSpamList::new(reload_controller).into()]
         }
@@ -89,9 +87,7 @@ fn switch(routes: Route, reload_controller: ReloadController) -> Html {
         Route::NotFound => {
             vec![html! { <PageNotFound/> }]
         }
-    };
-
-    PageStack::new(stack).into()
+    }
 }
 
 struct PmgQuarantineApp {
@@ -157,15 +153,8 @@ impl Component for PmgQuarantineApp {
 
     fn view(&self, _ctx: &Context<Self>) -> Html {
         let reload_controller = self.reload_controller.clone();
-        let render = move |routes: Route| switch(routes, reload_controller.clone());
-        ThemeLoader::new(html! {
-            <div class="pwt-viewport">
-                <HashRouter> // fixme:  basename="/quarantine/">
-                    <Switch<Route> {render} />
-                </HashRouter>
-            </div>
-        })
-        .into()
+        let render = move |route: &str| switch(route, reload_controller.clone());
+        MaterialApp::new(render).into()
     }
 
     fn update(&mut self, _ctx: &Context<Self>, msg: Self::Message) -> bool {

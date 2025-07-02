@@ -6,13 +6,14 @@ use serde_json::{json, Value};
 use pwt::{prelude::*, widget::AlertDialog};
 use yew::virtual_dom::{VComp, VNode};
 //use yew::html::IntoEventCallback;
-use yew_router::scope_ext::RouterScopeExt;
+
+use pwt::css::FlexFit;
+use pwt::touch::{ApplicationBar, FabMenu, FabMenuAlign, FabMenuEntry, Scaffold};
+use pwt::widget::Container;
 
 use proxmox_yew_comp::http_post;
-use pwt::touch::{FabMenu, FabMenuAlign, FabMenuEntry};
-use pwt::widget::{ActionIcon, Column, Container, Row};
 
-use super::{ReloadController, Route};
+use super::ReloadController;
 
 #[derive(Clone, PartialEq, Properties)]
 pub struct PageMailView {
@@ -57,53 +58,14 @@ impl PmgPageMailView {
         })
     }
 
-    fn top_bar(&self, ctx: &Context<Self>) -> Html {
-        Row::new()
-        .attribute("role", "banner")
-        .attribute("aria-label", "Spam Mail Preview")
-        .class("pwt-navbar")
-        .class("pwt-justify-content-space-between pwt-align-items-center")
-        .class("pwt-border-bottom")
-        .class("pwt-shadow1")
-        .padding(1)
-        .with_child(
-            Row::new()
-                .class("pwt-align-items-center")
-                .with_child(
-                    ActionIcon::new("fa fa-arrow-left")
-                        .class("pwt-font-size-headline-small")
-                        .class("pwt-color-primary")
-                        .on_activate({
-                            let link = ctx.link().clone();
-                            move |_| {
-                                let navigator = link.navigator().unwrap();
-                                navigator.push(&Route::SpamList);
-                            }
-                        })
-                )
-                .with_child(html!{
-                    <span class="pwt-ps-1 pwt-font-headline-medium pwt-user-select-none">{"Preview"}</span>
-                })
-
-        )
-        //    .with_flex_spacer()
-        //        .with_child(button_group)
-        .into()
-    }
-
     fn content_view(&self, ctx: &Context<Self>) -> Html {
         let props = ctx.props();
 
-        let iframe = html! {
+        html! {
             <iframe frameborder="0" width="100%" height="100%" sandbox="allow-same-origin"
                 src={format!("/api2/htmlmail/quarantine/content?id={}", props.id)}>
             </iframe>
-        };
-
-        Container::new()
-            .class("pwt-flex-fill")
-            .with_child(iframe)
-            .into()
+        }
     }
 }
 
@@ -159,18 +121,13 @@ impl Component for PmgPageMailView {
             self.action_callback(ctx, "deliver"),
         );
 
-        let fab = Container::new()
-            .class("pwt-position-fixed")
-            .class("pwt-right-2 pwt-bottom-4")
-            .with_child(
-                FabMenu::new()
-                    .align(FabMenuAlign::End)
-                    .main_button_class("pwt-scheme-primary")
-                    .with_child(blacklist_button)
-                    .with_child(whitelist_button)
-                    .with_child(delete_button)
-                    .with_child(deliver_button),
-            );
+        let fab = FabMenu::new()
+            .align(FabMenuAlign::End)
+            .main_button_class("pwt-scheme-primary")
+            .with_child(blacklist_button)
+            .with_child(whitelist_button)
+            .with_child(delete_button)
+            .with_child(deliver_button);
 
         let error_dialog = match &self.error {
             Some(msg) => {
@@ -179,12 +136,15 @@ impl Component for PmgPageMailView {
             None => None,
         };
 
-        Column::new()
-            .class("pwt-viewport")
-            .with_child(self.top_bar(ctx))
-            .with_child(self.content_view(ctx))
-            .with_optional_child(error_dialog)
-            .with_child(fab)
+        Scaffold::new()
+            .application_bar(ApplicationBar::new().title(tr!("Preview")))
+            .body(
+                Container::new()
+                    .class(FlexFit)
+                    .with_child(self.content_view(ctx))
+                    .with_optional_child(error_dialog),
+            )
+            .favorite_action_button(fab)
             .into()
     }
 }

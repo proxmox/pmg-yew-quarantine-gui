@@ -1,15 +1,11 @@
 use pwt::prelude::*;
-use pwt::widget::{error_message, Column};
-
-use crate::TopNavBar;
+use pwt::touch::{ApplicationBar, Scaffold};
+use pwt::widget::error_message;
 
 #[function_component]
 pub fn PageNotFound() -> Html {
-    let content = error_message("page not found");
-
-    Column::new()
-        .class("pwt-viewport")
-        .with_child(TopNavBar::new())
-        .with_child(content)
+    Scaffold::new()
+        .application_bar(ApplicationBar::new().title(tr!("Not found")))
+        .body(error_message(&tr!("page not found")))
         .into()
 }

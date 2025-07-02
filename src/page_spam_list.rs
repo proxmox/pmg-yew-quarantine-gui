@@ -7,12 +7,13 @@ use yew::prelude::*;
 use yew::virtual_dom::{VComp, VNode};
 use yew_router::scope_ext::RouterScopeExt;
 
+use pwt::css::FlexFit;
 use pwt::prelude::*;
-use pwt::touch::Fab;
+use pwt::touch::{ApplicationBar, Fab, Scaffold};
 use pwt::widget::form::{Field, Form, FormContext, InputType};
-use pwt::widget::{Button, Column, Container, Dialog, Row};
+use pwt::widget::{Button, Column, Container, Dialog, Image, Row};
 
-use crate::{ReloadController, Route, SpamList, TopNavBar};
+use crate::{ReloadController, Route, SpamList};
 
 #[derive(Clone, PartialEq, Properties)]
 pub struct PageSpamList {
@@ -157,21 +158,27 @@ impl Component for PmgPageSpamList {
                 .on_close(ctx.link().callback(|_| Msg::CloseDialog))
         });
 
-        let fab = Container::new()
-            .class("pwt-position-fixed")
-            .class("pwt-right-2 pwt-bottom-4")
-            .with_child(
-                Fab::new("fa fa-calendar")
-                    .class("pwt-scheme-primary")
-                    .on_activate(ctx.link().callback(|_| Msg::ShowDialog)),
-            );
+        let fab = Fab::new("fa fa-calendar")
+            .class("pwt-scheme-primary")
+            .on_activate(ctx.link().callback(|_| Msg::ShowDialog));
 
-        Column::new()
-            .class("pwt-viewport")
-            .with_child(TopNavBar::new())
-            .with_child(content)
-            .with_child(fab)
-            .with_optional_child(dialog)
+        Scaffold::new()
+            .application_bar(
+                ApplicationBar::new()
+                    .leading(
+                        Image::new("/proxmox_logo.png")
+                            .dark_mode_src("/proxmox_logo_white.png")
+                            .class("pwt-navbar-brand"),
+                    )
+                    .title("Mail"),
+            )
+            .body(
+                Container::new()
+                    .class(FlexFit)
+                    .with_child(content)
+                    .with_optional_child(dialog),
+            )
+            .favorite_action_button(fab)
             .into()
     }
 }
