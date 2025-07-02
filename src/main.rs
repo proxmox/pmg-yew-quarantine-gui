@@ -23,12 +23,13 @@ use pwt::touch::MaterialApp;
 
 use proxmox_login::Authentication;
 use proxmox_yew_comp::{
-    authentication_from_cookie, http_set_auth, stop_ticket_refresh_loop, ExistingProduct,
+    authentication_from_cookie, http_set_auth, register_auth_observer, stop_ticket_refresh_loop,
+    AuthObserver, ExistingProduct,
 };
 
 pub enum Msg {
     Login(Authentication),
-    //Logout,
+    Logout,
 }
 
 #[derive(Clone, Routable, PartialEq)]
@@ -60,13 +61,14 @@ fn switch(route: &str) -> Vec<Html> {
 
 struct PmgQuarantineApp {
     login_info: Option<Authentication>,
+    _auth_observer: AuthObserver,
 }
 
 impl Component for PmgQuarantineApp {
     type Message = Msg;
     type Properties = ();
 
-    fn create(_ctx: &Context<Self>) -> Self {
+    fn create(ctx: &Context<Self>) -> Self {
         // set auth info from cookie
         let login_info = authentication_from_cookie(&ExistingProduct::PMG);
         if let Some(login_info) = &login_info {
@@ -75,7 +77,14 @@ impl Component for PmgQuarantineApp {
                 stop_ticket_refresh_loop();
             }
         }
-        Self { login_info }
+        let _auth_observer = register_auth_observer(
+            ctx.link()
+                .batch_callback(|logout: bool| logout.then_some(Msg::Logout)),
+        );
+        Self {
+            login_info,
+            _auth_observer,
+        }
     }
 
     fn view(&self, ctx: &Context<Self>) -> Html {
@@ -99,6 +108,7 @@ impl Component for PmgQuarantineApp {
                 let location = document.location().unwrap();
                 let _ = location.replace(&location.pathname().unwrap());
             }
+            Msg::Logout => self.login_info = None,
         }
         true
     }
