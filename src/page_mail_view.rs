@@ -9,7 +9,7 @@ use yew::virtual_dom::{VComp, VNode};
 use yew_router::scope_ext::RouterScopeExt;
 
 use proxmox_yew_comp::http_post;
-use pwt::touch::{Fab, FabMenu, FabMenuAlign};
+use pwt::touch::{FabMenu, FabMenuAlign, FabMenuEntry};
 use pwt::widget::{ActionIcon, Column, Container, Row};
 
 use super::{ReloadController, Route};
@@ -135,21 +135,29 @@ impl Component for PmgPageMailView {
     }
 
     fn view(&self, ctx: &Context<Self>) -> Html {
-        let blacklist_button = Fab::new("fa fa-times")
-            .text("Blacklist")
-            .on_click(self.action_callback(ctx, "blacklist"));
+        let blacklist_button = FabMenuEntry::new(
+            tr!("Blacklist"),
+            "fa fa-times",
+            self.action_callback(ctx, "blacklist"),
+        );
 
-        let whitelist_button = Fab::new("fa fa-check")
-            .text("Whitelist")
-            .on_click(self.action_callback(ctx, "whitelist"));
+        let whitelist_button = FabMenuEntry::new(
+            tr!("Whitelist"),
+            "fa fa-check",
+            self.action_callback(ctx, "whitelist"),
+        );
 
-        let delete_button = Fab::new("fa fa-trash")
-            .text("Delete")
-            .on_click(self.action_callback(ctx, "delete"));
+        let delete_button = FabMenuEntry::new(
+            tr!("Delete"),
+            "fa fa-trash",
+            self.action_callback(ctx, "delete"),
+        );
 
-        let deliver_button = Fab::new("fa fa-paper-plane")
-            .text("Deliver")
-            .on_click(self.action_callback(ctx, "deliver"));
+        let deliver_button = FabMenuEntry::new(
+            tr!("Deliver"),
+            "fa fa-paper-plane",
+            self.action_callback(ctx, "deliver"),
+        );
 
         let fab = Container::new()
             .class("pwt-position-fixed")

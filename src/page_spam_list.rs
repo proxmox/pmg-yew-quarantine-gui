@@ -163,7 +163,7 @@ impl Component for PmgPageSpamList {
             .with_child(
                 Fab::new("fa fa-calendar")
                     .class("pwt-scheme-primary")
-                    .on_click(ctx.link().callback(|_| Msg::ShowDialog)),
+                    .on_activate(ctx.link().callback(|_| Msg::ShowDialog)),
             );
 
         Column::new()
