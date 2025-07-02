@@ -23,8 +23,6 @@ use pwt::touch::MaterialApp;
 use proxmox_login::{Authentication, TicketResult};
 use proxmox_yew_comp::{authentication_from_cookie, http_login, http_set_auth, ExistingProduct};
 
-//http://192.168.3.106:8080/quarantine?ticket=PMGQUAR%253Adietmar%2540proxmox.com%253A644AF198%253A%253AFU%252BowV2YQZxA%252FzzmL16tNoJj0VjZ11aHl4BW7DZsPT9rqFaot2It5ffZdz5Kduclsb4AljhP8Lkmc1qfuqNHxsH%252BKdRgT0hHa8wHL6%252FHbs%252B9OSvtalmh9BCOIpr29V0iA7TLWCUTT1SnBJAKgvu3rk%252BpyenCw4g%252BbdWr6saBbNGKXhNzdX1onN2L2NzoSO9nOhBU9ITXETPncAD0BD9VSsllO112S1857U9RFmw%252B%252B6bk1bRBdnbmsukhoI1XzaPAqoeQ9vgo5FeVKWOWnXnbayhZ84s7xOvozVTBTkwIZ%252FNPEN3OxpRDxxvSaJEnURQc2RM0vcMTjssnw4O0yrgDzg%253D%253D
-
 #[derive(Clone, PartialEq)]
 pub struct ReloadController {
     pub state: SharedState<usize>,
