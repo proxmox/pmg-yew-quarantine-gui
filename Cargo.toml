@@ -5,6 +5,7 @@ edition = "2021"
 
 [dependencies]
 anyhow = "1.0"
+gloo-utils = "0.2"
 lazy_static = "1.4"
 yew = { version = "0.21",  features = ["csr"] }
 yew-router = { version = "0.18" }

@@ -12,6 +12,7 @@ pub use page_not_found::PageNotFound;
 
 use percent_encoding::percent_decode_str;
 
+use gloo_utils::document;
 use yew::prelude::*;
 use yew_router::Routable;
 
@@ -118,10 +119,10 @@ impl Component for PmgQuarantineApp {
     fn update(&mut self, _ctx: &Context<Self>, msg: Self::Message) -> bool {
         match msg {
             Msg::Login(info) => {
-                self.login_info = Some(info);
-                let document = web_sys::window().unwrap().document().unwrap();
+                self.login_info = Some(info.clone());
+                let document = document();
                 let location = document.location().unwrap();
-                let _ = location.replace("/");
+                let _ = location.replace(&location.pathname().unwrap());
             }
         }
         true
