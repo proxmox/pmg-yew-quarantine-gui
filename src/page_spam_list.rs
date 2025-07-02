@@ -11,7 +11,7 @@ use pwt::css::FlexFit;
 use pwt::prelude::*;
 use pwt::touch::{ApplicationBar, Fab, Scaffold};
 use pwt::widget::form::{Field, Form, FormContext, InputType};
-use pwt::widget::{Button, Column, Container, Dialog, Image, Row};
+use pwt::widget::{Button, Column, Container, Dialog, Image, Row, ThemeModeSelector};
 
 use crate::{Route, SpamList};
 
@@ -172,7 +172,8 @@ impl Component for PmgPageSpamList {
                             .dark_mode_src("/proxmox_logo_white.png")
                             .class("pwt-navbar-brand"),
                     )
-                    .title("Mail"),
+                    .title("Mail")
+                    .with_action(ThemeModeSelector::new()),
             )
             .body(
                 Container::new()
