@@ -12,47 +12,15 @@ pub use page_not_found::PageNotFound;
 
 use percent_encoding::percent_decode_str;
 
-use yew::html::IntoEventCallback;
 use yew::prelude::*;
 use yew_router::Routable;
 
 use pwt::prelude::*;
-use pwt::state::{LanguageInfo, SharedState, SharedStateObserver};
+use pwt::state::LanguageInfo;
 use pwt::touch::MaterialApp;
 
 use proxmox_login::{Authentication, TicketResult};
 use proxmox_yew_comp::{authentication_from_cookie, http_login, http_set_auth, ExistingProduct};
-
-#[derive(Clone, PartialEq)]
-pub struct ReloadController {
-    pub state: SharedState<usize>,
-}
-
-impl ReloadController {
-    pub fn new() -> Self {
-        Self {
-            state: SharedState::new(0),
-        }
-    }
-
-    pub fn reload(&self) {
-        let mut guard = self.state.write();
-        **guard = **guard + 1;
-    }
-
-    pub fn add_listener(
-        &self,
-        cb: impl IntoEventCallback<ReloadController>,
-    ) -> SharedStateObserver<usize> {
-        let cb = cb.into_event_callback();
-        let me = self.clone();
-        self.state.add_listener(move |_| {
-            if let Some(cb) = &cb {
-                cb.emit(me.clone());
-            }
-        })
-    }
-}
 
 pub enum Msg {
     Login(Authentication),
@@ -70,18 +38,15 @@ enum Route {
     NotFound,
 }
 
-fn switch(route: &str, reload_controller: ReloadController) -> Vec<Html> {
+fn switch(route: &str) -> Vec<Html> {
     let routes = Routable::recognize(route).unwrap();
 
     match routes {
         Route::SpamList => {
-            vec![PageSpamList::new(reload_controller).into()]
+            vec![PageSpamList::new().into()]
         }
         Route::ViewMail { id } => {
-            vec![
-                PageSpamList::new(reload_controller.clone()).into(),
-                PageMailView::new(reload_controller, id).into(),
-            ]
+            vec![PageSpamList::new().into(), PageMailView::new(id).into()]
         }
         Route::NotFound => {
             vec![html! { <PageNotFound/> }]
@@ -91,7 +56,6 @@ fn switch(route: &str, reload_controller: ReloadController) -> Vec<Html> {
 
 struct PmgQuarantineApp {
     login_info: Option<Authentication>,
-    reload_controller: ReloadController,
 }
 
 impl PmgQuarantineApp {
@@ -144,16 +108,11 @@ impl Component for PmgQuarantineApp {
                 }
             }
         }
-        Self {
-            login_info,
-            reload_controller: ReloadController::new(),
-        }
+        Self { login_info }
     }
 
     fn view(&self, _ctx: &Context<Self>) -> Html {
-        let reload_controller = self.reload_controller.clone();
-        let render = move |route: &str| switch(route, reload_controller.clone());
-        MaterialApp::new(render).into()
+        MaterialApp::new(switch).into()
     }
 
     fn update(&mut self, _ctx: &Context<Self>, msg: Self::Message) -> bool {

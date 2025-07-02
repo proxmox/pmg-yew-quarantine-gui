@@ -13,20 +13,14 @@ use pwt::widget::Container;
 
 use proxmox_yew_comp::http_post;
 
-use super::ReloadController;
-
 #[derive(Clone, PartialEq, Properties)]
 pub struct PageMailView {
     id: String,
-    reload_controller: ReloadController,
 }
 
 impl PageMailView {
-    pub fn new(reload_controller: ReloadController, id: impl Into<String>) -> Self {
-        yew::props!(Self {
-            id: id.into(),
-            reload_controller,
-        })
+    pub fn new(id: impl Into<String>) -> Self {
+        yew::props!(Self { id: id.into() })
     }
 }
 
@@ -77,16 +71,12 @@ impl Component for PmgPageMailView {
         Self { error: None }
     }
 
-    fn update(&mut self, ctx: &Context<Self>, msg: Self::Message) -> bool {
-        let props = ctx.props();
+    fn update(&mut self, _ctx: &Context<Self>, msg: Self::Message) -> bool {
         match msg {
             Msg::ClearError => {
                 self.error = None;
             }
             Msg::ActionResult(result) => {
-                //log::info!("RESULT {:?}", result);
-                props.reload_controller.reload();
-
                 if let Err(err) = result {
                     self.error = Some(err.to_string());
                     //log::info!("ERROR {:?}", self.error);

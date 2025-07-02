@@ -13,16 +13,14 @@ use pwt::touch::{ApplicationBar, Fab, Scaffold};
 use pwt::widget::form::{Field, Form, FormContext, InputType};
 use pwt::widget::{Button, Column, Container, Dialog, Image, Row};
 
-use crate::{ReloadController, Route, SpamList};
+use crate::{Route, SpamList};
 
 #[derive(Clone, PartialEq, Properties)]
-pub struct PageSpamList {
-    reload_controller: ReloadController,
-}
+pub struct PageSpamList {}
 
 impl PageSpamList {
-    pub fn new(reload_controller: ReloadController) -> Self {
-        Self { reload_controller }
+    pub fn new() -> Self {
+        Self {}
     }
 }
 
@@ -146,8 +144,7 @@ impl Component for PmgPageSpamList {
     }
 
     fn view(&self, ctx: &Context<Self>) -> Html {
-        let props = ctx.props();
-        let content = SpamList::new(props.reload_controller.clone())
+        let content = SpamList::new()
             .starttime((self.start_date / 1000.0) as u64)
             .endtime((self.end_date / 1000.0) as u64)
             .on_preview(ctx.link().callback(|id| Msg::Preview(id)));
