@@ -23,6 +23,7 @@ percent-encoding = "2.1"
 proxmox-client = "0.5"
 proxmox-schema = "4"
 proxmox-uuid = "1"
+proxmox-subscription = { version = "0.5", features = ["api-types"], default-features = false }
 
 pwt = "0.5"
 pwt-macros = "0.3"
