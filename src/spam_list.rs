@@ -167,9 +167,9 @@ impl Component for PmgSpamList {
     }
 }
 
-impl Into<VNode> for SpamList {
-    fn into(self) -> VNode {
-        let comp = VComp::new::<PmgSpamList>(Rc::new(self), None);
+impl From<SpamList> for VNode {
+    fn from(val: SpamList) -> Self {
+        let comp = VComp::new::<PmgSpamList>(Rc::new(val), None);
         VNode::from(comp)
     }
 }

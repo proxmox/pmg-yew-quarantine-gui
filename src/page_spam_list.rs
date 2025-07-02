@@ -24,6 +24,12 @@ impl PageSpamList {
     }
 }
 
+impl Default for PageSpamList {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 #[derive(Copy, Clone, PartialEq)]
 pub enum ViewState {
     Normal,
@@ -147,7 +153,7 @@ impl Component for PmgPageSpamList {
         let content = SpamList::new()
             .starttime((self.start_date / 1000.0) as u64)
             .endtime((self.end_date / 1000.0) as u64)
-            .on_preview(ctx.link().callback(|id| Msg::Preview(id)));
+            .on_preview(ctx.link().callback(Msg::Preview));
 
         let dialog = (self.state == ViewState::ShowDialog).then(|| {
             Dialog::new("Select Date")
@@ -180,9 +186,9 @@ impl Component for PmgPageSpamList {
     }
 }
 
-impl Into<VNode> for PageSpamList {
-    fn into(self) -> VNode {
-        let comp = VComp::new::<PmgPageSpamList>(Rc::new(self), None);
+impl From<PageSpamList> for VNode {
+    fn from(val: PageSpamList) -> Self {
+        let comp = VComp::new::<PmgPageSpamList>(Rc::new(val), None);
         VNode::from(comp)
     }
 }

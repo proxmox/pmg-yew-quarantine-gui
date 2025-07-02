@@ -127,9 +127,9 @@ impl Component for PmgPageMailView {
     }
 }
 
-impl Into<VNode> for PageMailView {
-    fn into(self) -> VNode {
-        let comp = VComp::new::<PmgPageMailView>(Rc::new(self), None);
+impl From<PageMailView> for VNode {
+    fn from(val: PageMailView) -> Self {
+        let comp = VComp::new::<PmgPageMailView>(Rc::new(val), None);
         VNode::from(comp)
     }
 }
