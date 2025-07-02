@@ -161,9 +161,8 @@ impl Component for PmgPageSpamList {
                 .on_close(ctx.link().callback(|_| Msg::CloseDialog))
         });
 
-        let fab = Fab::new("fa fa-calendar")
-            .class("pwt-scheme-primary")
-            .on_activate(ctx.link().callback(|_| Msg::ShowDialog));
+        let fab = Fab::new("fa fa-calendar").on_activate(ctx.link().callback(|_| Msg::ShowDialog));
+
 
         Scaffold::new()
             .application_bar(
