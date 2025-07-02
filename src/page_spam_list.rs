@@ -4,13 +4,13 @@ use js_sys::Date;
 use wasm_bindgen::JsValue;
 
 use yew::prelude::*;
-use yew_router::scope_ext::RouterScopeExt;
 use yew::virtual_dom::{VComp, VNode};
+use yew_router::scope_ext::RouterScopeExt;
 
 use pwt::prelude::*;
-use pwt::touch::{Fab};
+use pwt::touch::Fab;
+use pwt::widget::form::{Field, Form, FormContext, InputType};
 use pwt::widget::{Button, Column, Container, Dialog, Row};
-use pwt::widget::form::{Field, Form, FormContext};
 
 use crate::{ReloadController, Route, SpamList, TopNavBar};
 
@@ -71,14 +71,14 @@ impl PmgPageSpamList {
                 Field::new()
                     .name("from")
                     .default(start_date)
-                    .input_type("date")
+                    .input_type(InputType::Date),
             )
             .with_child("To:")
             .with_child(
                 Field::new()
                     .name("to")
                     .default(end_date)
-                    .input_type("date")
+                    .input_type(InputType::Date),
             )
             .with_child(
                 Row::new()

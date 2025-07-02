@@ -39,6 +39,7 @@ pub struct MailInfo {
 }
 #[derive(Clone, PartialEq, Properties)]
 pub struct SpamList {
+    #[prop_or_default]
     on_preview: Option<Callback<String>>,
     #[prop_or_default]
     param: SpamListParam,

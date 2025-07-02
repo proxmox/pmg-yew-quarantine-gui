@@ -9,7 +9,8 @@ use pwt::widget::{ThemeModeSelector, Row};
 
 #[derive(Clone, PartialEq, Properties)]
 pub struct TopNavBar {
-    pub on_logout: Option<Callback<MouseEvent>>
+    #[prop_or_default]
+    pub on_logout: Option<Callback<MouseEvent>>,
 }
 
 impl TopNavBar {

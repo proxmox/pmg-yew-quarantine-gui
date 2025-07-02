@@ -23,9 +23,8 @@ use pwt::widget::ThemeLoader;
 use pwt::state::{SharedState, SharedStateObserver};
 use pwt::touch::PageStack;
 
-use proxmox_yew_comp::{http_login, http_set_auth, authentication_from_cookie};
-use proxmox_yew_comp::ProxmoxProduct;
 use proxmox_login::{Authentication, TicketResult};
+use proxmox_yew_comp::{authentication_from_cookie, http_login, http_set_auth, ExistingProduct};
 
 //http://192.168.3.106:8080/quarantine?ticket=PMGQUAR%253Adietmar%2540proxmox.com%253A644AF198%253A%253AFU%252BowV2YQZxA%252FzzmL16tNoJj0VjZ11aHl4BW7DZsPT9rqFaot2It5ffZdz5Kduclsb4AljhP8Lkmc1qfuqNHxsH%252BKdRgT0hHa8wHL6%252FHbs%252B9OSvtalmh9BCOIpr29V0iA7TLWCUTT1SnBJAKgvu3rk%252BpyenCw4g%252BbdWr6saBbNGKXhNzdX1onN2L2NzoSO9nOhBU9ITXETPncAD0BD9VSsllO112S1857U9RFmw%252B%252B6bk1bRBdnbmsukhoI1XzaPAqoeQ9vgo5FeVKWOWnXnbayhZ84s7xOvozVTBTkwIZ%252FNPEN3OxpRDxxvSaJEnURQc2RM0vcMTjssnw4O0yrgDzg%253D%253D
 
@@ -106,6 +105,9 @@ impl PmgQuarantineApp {
                 Ok(TicketResult::Full(info)) => {
                     link.send_message(Msg::Login(info));
                 }
+                Ok(TicketResult::HttpOnly(info)) => {
+                    link.send_message(Msg::Login(info));
+                }
                 Ok(TicketResult::TfaRequired(_)) => {
                     log::error!("ERROR: TFA required, but not implemenmted");
                 }
@@ -124,7 +126,7 @@ impl Component for PmgQuarantineApp {
 
     fn create(ctx: &Context<Self>) -> Self {
         // set auth info from cookie
-        let login_info = authentication_from_cookie(ProxmoxProduct::PVE);
+        let login_info = authentication_from_cookie(&ExistingProduct::PMG);
         if let Some(login_info) = &login_info {
             http_set_auth(login_info.clone());
         }
@@ -179,7 +181,7 @@ impl Component for PmgQuarantineApp {
 }
 
 fn main() {
-    proxmox_yew_comp::http_setup(proxmox_yew_comp::ProxmoxProduct::PMG);
+    proxmox_yew_comp::http_setup(&ExistingProduct::PMG);
 
     pwt::props::set_http_get_method(
         |url| async move { proxmox_yew_comp::http_get(&url, None).await },

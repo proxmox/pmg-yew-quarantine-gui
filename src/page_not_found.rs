@@ -5,7 +5,7 @@ use crate::TopNavBar;
 
 #[function_component]
 pub fn PageNotFound() -> Html {
-    let content = error_message("page not found", "pwt-p-2");
+    let content = error_message("page not found");
 
     Column::new()
         .class("pwt-viewport")
