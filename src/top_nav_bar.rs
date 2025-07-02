@@ -1,11 +1,11 @@
 use std::rc::Rc;
 
 use pwt::prelude::*;
-use yew::virtual_dom::{VComp, VNode};
 use yew::html::IntoEventCallback;
+use yew::virtual_dom::{VComp, VNode};
 
 use pwt::state::{Theme, ThemeObserver};
-use pwt::widget::{ThemeModeSelector, Row};
+use pwt::widget::{Row, ThemeModeSelector};
 
 #[derive(Clone, PartialEq, Properties)]
 pub struct TopNavBar {
@@ -33,8 +33,6 @@ pub struct PmgTopNavBar {
     dark_mode: bool,
 }
 
-
-
 impl Component for PmgTopNavBar {
     type Message = Msg;
     type Properties = TopNavBar;
@@ -44,7 +42,7 @@ impl Component for PmgTopNavBar {
         let dark_mode = _theme_observer.dark_mode();
         Self {
             _theme_observer,
-            dark_mode ,
+            dark_mode,
         }
     }
 
@@ -84,8 +82,8 @@ impl Component for PmgTopNavBar {
             .class("pwt-border-bottom")
             .class("pwt-shadow1")
             .padding(1)
-            .with_child(html!{ <img class="pwt-navbar-brand" {src} alt="Proxmox logo"/> })
-            .with_child(html!{
+            .with_child(html! { <img class="pwt-navbar-brand" {src} alt="Proxmox logo"/> })
+            .with_child(html! {
                 <span class="pwt-ps-1 pwt-font-headline-small">{"Mail"}</span>
             })
             .with_flex_spacer()

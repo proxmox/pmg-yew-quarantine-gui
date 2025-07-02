@@ -19,9 +19,9 @@ use yew::html::IntoEventCallback;
 use yew::prelude::*;
 use yew_router::{HashRouter, Routable, Switch};
 
-use pwt::widget::ThemeLoader;
 use pwt::state::{SharedState, SharedStateObserver};
 use pwt::touch::PageStack;
+use pwt::widget::ThemeLoader;
 
 use proxmox_login::{Authentication, TicketResult};
 use proxmox_yew_comp::{authentication_from_cookie, http_login, http_set_auth, ExistingProduct};
@@ -45,7 +45,10 @@ impl ReloadController {
         **guard = **guard + 1;
     }
 
-    pub fn add_listener(&self, cb: impl IntoEventCallback<ReloadController>) -> SharedStateObserver<usize> {
+    pub fn add_listener(
+        &self,
+        cb: impl IntoEventCallback<ReloadController>,
+    ) -> SharedStateObserver<usize> {
         let cb = cb.into_event_callback();
         let me = self.clone();
         self.state.add_listener(move |_| {
@@ -154,9 +157,7 @@ impl Component for PmgQuarantineApp {
 
     fn view(&self, _ctx: &Context<Self>) -> Html {
         let reload_controller = self.reload_controller.clone();
-        let render = move |routes: Route| {
-            switch(routes, reload_controller.clone())
-        };
+        let render = move |routes: Route| switch(routes, reload_controller.clone());
         ThemeLoader::new(html! {
             <div class="pwt-viewport">
                 <HashRouter> // fixme:  basename="/quarantine/">

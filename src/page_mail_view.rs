@@ -1,7 +1,7 @@
 use std::rc::Rc;
 
-use serde_json::{json, Value};
 use anyhow::Error;
+use serde_json::{json, Value};
 
 use pwt::{prelude::*, widget::AlertDialog};
 use yew::virtual_dom::{VComp, VNode};
@@ -9,8 +9,8 @@ use yew::virtual_dom::{VComp, VNode};
 use yew_router::scope_ext::RouterScopeExt;
 
 use proxmox_yew_comp::http_post;
-use pwt::widget::{ActionIcon, Container, Column, Row};
 use pwt::touch::{Fab, FabMenu, FabMenuAlign};
+use pwt::widget::{ActionIcon, Column, Container, Row};
 
 use super::{ReloadController, Route};
 
@@ -38,7 +38,6 @@ pub struct PmgPageMailView {
 }
 
 impl PmgPageMailView {
-
     fn action_callback(&self, ctx: &Context<Self>, action: &str) -> Callback<MouseEvent> {
         let props = ctx.props();
 
@@ -95,7 +94,7 @@ impl PmgPageMailView {
     fn content_view(&self, ctx: &Context<Self>) -> Html {
         let props = ctx.props();
 
-        let iframe = html!{
+        let iframe = html! {
             <iframe frameborder="0" width="100%" height="100%" sandbox="allow-same-origin"
                 src={format!("/api2/htmlmail/quarantine/content?id={}", props.id)}>
             </iframe>
@@ -162,15 +161,12 @@ impl Component for PmgPageMailView {
                     .with_child(blacklist_button)
                     .with_child(whitelist_button)
                     .with_child(delete_button)
-                    .with_child(deliver_button)
+                    .with_child(deliver_button),
             );
 
         let error_dialog = match &self.error {
             Some(msg) => {
-                Some(
-                    AlertDialog::new(msg)
-                        .on_close(ctx.link().callback(|_| Msg::ClearError))
-                )
+                Some(AlertDialog::new(msg).on_close(ctx.link().callback(|_| Msg::ClearError)))
             }
             None => None,
         };

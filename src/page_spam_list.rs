@@ -21,9 +21,7 @@ pub struct PageSpamList {
 
 impl PageSpamList {
     pub fn new(reload_controller: ReloadController) -> Self {
-        Self {
-            reload_controller,
-        }
+        Self { reload_controller }
     }
 }
 
@@ -56,7 +54,6 @@ fn epoch_to_date_string(epoch: f64) -> String {
     )
 }
 impl PmgPageSpamList {
-
     fn date_range_form(&self, ctx: &Context<Self>) -> Html {
         let start_date = epoch_to_date_string(self.start_date);
         let end_date = epoch_to_date_string(self.end_date);
@@ -81,14 +78,11 @@ impl PmgPageSpamList {
                     .input_type(InputType::Date),
             )
             .with_child(
-                Row::new()
-                    .class("pwt-pt-2")
-                    .with_flex_spacer()
-                    .with_child(
-                        Button::new("Apply")
-                            .class("pwt-scheme-primary")
-                            .onclick(ctx.link().callback(|_| Msg::ApplyDate))
-                    )
+                Row::new().class("pwt-pt-2").with_flex_spacer().with_child(
+                    Button::new("Apply")
+                        .class("pwt-scheme-primary")
+                        .onclick(ctx.link().callback(|_| Msg::ApplyDate)),
+                ),
             );
 
         Form::new()
@@ -110,8 +104,8 @@ impl Component for PmgPageSpamList {
         start_date.set_milliseconds(0);
 
         let mut start_date = start_date.get_time();
-        let end_date = start_date + 24.0*3600000.0;
-        start_date = end_date - 7.0*24.0*3600000.0;
+        let end_date = start_date + 24.0 * 3600000.0;
+        start_date = end_date - 7.0 * 24.0 * 3600000.0;
 
         Self {
             state: ViewState::Normal,
@@ -157,7 +151,7 @@ impl Component for PmgPageSpamList {
             .endtime((self.end_date / 1000.0) as u64)
             .on_preview(ctx.link().callback(|id| Msg::Preview(id)));
 
-        let dialog = (self.state == ViewState::ShowDialog).then(||  {
+        let dialog = (self.state == ViewState::ShowDialog).then(|| {
             Dialog::new("Select Date")
                 .with_child(self.date_range_form(ctx))
                 .on_close(ctx.link().callback(|_| Msg::CloseDialog))
@@ -169,7 +163,7 @@ impl Component for PmgPageSpamList {
             .with_child(
                 Fab::new("fa fa-calendar")
                     .class("pwt-scheme-primary")
-                    .on_click(ctx.link().callback(|_| Msg::ShowDialog))
+                    .on_click(ctx.link().callback(|_| Msg::ShowDialog)),
             );
 
         Column::new()

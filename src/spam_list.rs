@@ -14,7 +14,7 @@ use proxmox_yew_comp::http_get;
 use pwt::state::SharedStateObserver;
 use pwt::widget::{Card, Column};
 
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 
 use crate::ReloadController;
 
@@ -49,15 +49,15 @@ pub struct SpamList {
 
 impl SpamList {
     pub fn new(reload_controller: ReloadController) -> Self {
-         yew::props!(Self { reload_controller })
+        yew::props!(Self { reload_controller })
     }
 
-    pub fn starttime(mut self, epoch: impl IntoPropValue<Option<u64>>) -> Self  {
+    pub fn starttime(mut self, epoch: impl IntoPropValue<Option<u64>>) -> Self {
         self.param.starttime = epoch.into_prop_value();
         self
     }
 
-    pub fn endtime(mut self, epoch: impl IntoPropValue<Option<u64>>) -> Self  {
+    pub fn endtime(mut self, epoch: impl IntoPropValue<Option<u64>>) -> Self {
         self.param.endtime = epoch.into_prop_value();
         self
     }
@@ -135,7 +135,8 @@ impl Component for PmgSpamList {
     fn create(ctx: &Context<Self>) -> Self {
         let props = ctx.props();
 
-        let reload_observer = props.reload_controller
+        let reload_observer = props
+            .reload_controller
             .add_listener(ctx.link().callback(|_| Msg::Reload));
 
         let me = Self {
@@ -162,7 +163,8 @@ impl Component for PmgSpamList {
         let props = ctx.props();
 
         if props.reload_controller != old_props.reload_controller {
-            self.reload_observer = props.reload_controller
+            self.reload_observer = props
+                .reload_controller
                 .add_listener(ctx.link().callback(|_| Msg::Reload));
         }
 
@@ -183,7 +185,7 @@ impl Component for PmgSpamList {
 
                 Column::new().class("pwt-fit").children(children).into()
             }
-            Err(err) => error_message(&err.to_string(), "pwt-p-2"),
+            Err(err) => error_message(&err.to_string()).into(),
         }
     }
 }
