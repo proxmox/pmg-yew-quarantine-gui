@@ -236,6 +236,7 @@ impl Component for PmgPageSpamList {
                     .leading(
                         Image::new("/proxmox_logo.png")
                             .dark_mode_src("/proxmox_logo_white.png")
+                            .height(30)
                             .class("pwt-navbar-brand"),
                     )
                     .title("Mail")

@@ -11,7 +11,7 @@ use yew::{
 
 use pwt::{
     css::{AlignItems, JustifyContent},
-    props::{ContainerBuilder, CssPaddingBuilder, WidgetBuilder},
+    props::{ContainerBuilder, CssPaddingBuilder, WidgetBuilder, WidgetStyleBuilder},
     touch::{SnackBar, SnackBarContextExt},
     widget::{Column, Container, Image, Row},
 };
@@ -122,7 +122,8 @@ impl Component for PmgPageLogin {
                     .class(AlignItems::Center)
                     .class(JustifyContent::Center)
                     .with_child(
-                        Image::new("/proxmox_logo.png").dark_mode_src("/proxmox_logo_white.png"),
+                        Image::new("/proxmox_logo.png").dark_mode_src("/proxmox_logo_white.png")
+                            .height(30),
                     )
                     .with_child(
                         Container::new()
