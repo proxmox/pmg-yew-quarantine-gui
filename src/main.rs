@@ -100,6 +100,7 @@ impl Component for PmgQuarantineApp {
                 vec![PageLogin::new().on_login(link.callback(Msg::Login)).into()]
             }
         })
+        .theme_dir_prefix("/mobile/css/".into())
         .into()
     }
 

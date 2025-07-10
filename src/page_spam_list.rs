@@ -234,8 +234,8 @@ impl Component for PmgPageSpamList {
             .application_bar(
                 ApplicationBar::new()
                     .leading(
-                        Image::new("/proxmox_logo.png")
-                            .dark_mode_src("/proxmox_logo_white.png")
+                        Image::new("/mobile/images/proxmox_logo.svg")
+                            .dark_mode_src("/mobile/images/proxmox_logo_white.svg")
                             .height(30)
                             .class("pwt-navbar-brand"),
                     )

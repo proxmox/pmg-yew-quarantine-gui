@@ -122,7 +122,8 @@ impl Component for PmgPageLogin {
                     .class(AlignItems::Center)
                     .class(JustifyContent::Center)
                     .with_child(
-                        Image::new("/proxmox_logo.png").dark_mode_src("/proxmox_logo_white.png")
+                        Image::new("/mobile/images/proxmox_logo.svg")
+                            .dark_mode_src("/mobile/images/proxmox_logo_white.svg")
                             .height(30),
                     )
                     .with_child(
