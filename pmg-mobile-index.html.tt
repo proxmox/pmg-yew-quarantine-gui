@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="Content-type" content="text/html; charset=utf-8" />
+    <meta name="viewport"
+        content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, minimal-ui, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+
+    <title>Proxmox Mail Gateway - Quarantine</title>
+
+    <link rel="stylesheet" href="/fontawesome/css/font-awesome.css">
+    <style>
+        /* Avoid flickering (default background in firefox is always white)*/
+        @media (prefers-color-scheme: dark) {
+            body {
+                background: #333;
+            }
+        }
+
+        @media (prefers-color-scheme: light) {
+            body {
+                background: #fff;
+            }
+        }
+
+    </style>
+    <script type="text/javascript">
+        Proxmox = {
+            UserName: '[% username %]',
+            CSRFPreventionToken: '[% token %]'
+        };
+    </script>
+    <link rel="preload" href="/mobile/js/pmg-quarantine-gui_bg.wasm" as="fetch" type="application/wasm" crossorigin="">
+    <link rel="modulepreload" href="/mobile/js/pmg-quarantine-gui_bundle.js">
+</head>
+
+<body>
+    <script type="module">
+        import init from '/mobile/js/pmg-quarantine-gui_bundle.js';
+        init('/mobile/js/pmg-quarantine-gui_bg.wasm');
+    </script>
+</body>
+
+</html>
