@@ -1,5 +1,5 @@
 [package]
-name = "pmg-quaratine-gui"
+name = "pmg-quarantine-gui"
 version = "0.1.0"
 edition = "2021"
 
