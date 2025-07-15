@@ -32,14 +32,20 @@
             CSRFPreventionToken: '[% token %]'
         };
     </script>
-    <link rel="preload" href="/mobile/js/pmg-quarantine-gui_bg.wasm" as="fetch" type="application/wasm" crossorigin="">
+    <link rel="preload" href="/mobile/js/pmg-quarantine-gui_bg.wasm.gz" as="fetch" type="application/wasm" crossorigin="">
     <link rel="modulepreload" href="/mobile/js/pmg-quarantine-gui_bundle.js">
 </head>
 
 <body>
     <script type="module">
         import init from '/mobile/js/pmg-quarantine-gui_bundle.js';
-        init('/mobile/js/pmg-quarantine-gui_bg.wasm');
+        const decompressedResponse = new Response(
+                await fetch('/mobile/js/pmg-quarantine-gui_bg.wasm.gz')
+                        .then(res => res.body.pipeThrough(new DecompressionStream("gzip")))
+        );
+        // set correct type to allow using faster WebAssembly.instantiateStreaming
+        decompressedResponse.headers.set("Content-Type", "application/wasm");
+        init(decompressedResponse);
     </script>
 </body>
 

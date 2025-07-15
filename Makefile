@@ -25,7 +25,7 @@ UIDIR = $(PREFIX)/share/javascript/pmg-mobile-quarantine-gui
 
 COMPILED_OUTPUT := \
 	dist/pmg-quarantine-gui_bundle.js \
-	dist/pmg-quarantine-gui_bg.wasm \
+	dist/pmg-quarantine-gui_bg.wasm.gz \
 	dist/mobile-yew-style.css
 
 all: $(COMPILED_OUTPUT)
@@ -39,6 +39,9 @@ dist/$(CRATENAME).js dist/$(CRATENAME)_bg.wasm &: $(shell find src -name '*.rs')
 .PHONY: rebuild
 rebuild:
 	proxmox-wasm-builder build -n $(CRATENAME) --release
+
+dist/$(CRATENAME)_bg.wasm.gz: dist/$(CRATENAME)_bg.wasm
+	gzip -c9 $^ > $@
 
 dist/pmg-quarantine-gui_bundle.js: dist/$(CRATENAME).js dist/$(CRATENAME)_bg.wasm
 	esbuild --bundle dist/$(CRATENAME).js --format=esm > dist/pmg-quarantine-gui_bundle.js.tmp
@@ -61,7 +64,7 @@ install: $(COMPILED_OUTPUT) pmg-mobile-index.html.tt
 	install -m0644 pwt-assets/assets/fonts/RobotoFlexVariableFont.woff2 $(DESTDIR)$(UIDIR)/fonts
 
 	install -m0644 dist/pmg-quarantine-gui_bundle.js $(DESTDIR)$(UIDIR)/js
-	install -m0644 dist/pmg-quarantine-gui_bg.wasm $(DESTDIR)$(UIDIR)/js
+	install -m0644 dist/pmg-quarantine-gui_bg.wasm.gz $(DESTDIR)$(UIDIR)/js
 	install -m0644 dist/mobile-yew-style.css $(DESTDIR)$(UIDIR)/css
 	install -m0644 pmg-mobile-index.html.tt $(DESTDIR)$(UIDIR)
 
