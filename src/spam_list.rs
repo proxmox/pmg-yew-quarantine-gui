@@ -168,7 +168,7 @@ impl Component for PmgSpamList {
 
     fn view(&self, ctx: &Context<Self>) -> Html {
         match &self.data {
-            Some(Ok(data)) => {
+            Some(Ok(data)) if !data.is_empty() => {
                 let on_preview = ctx.props().on_preview.clone();
                 let data = data.clone();
                 let link = ctx.link().clone();
@@ -182,6 +182,10 @@ impl Component for PmgSpamList {
                 .class(FlexFit)
                 .into()
             }
+            Some(Ok(_)) => Row::new()
+                .padding(2)
+                .with_child(tr!("No data in database"))
+                .into(),
             Some(Err(err)) => error_message(&err.to_string()).into(),
             None => Progress::new().into(),
         }
