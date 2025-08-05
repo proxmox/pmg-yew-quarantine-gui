@@ -22,14 +22,12 @@ use wasm_bindgen::JsValue;
 use yew::prelude::*;
 use yew_router::Routable;
 
-use pwt::prelude::*;
-use pwt::state::LanguageInfo;
 use pwt::touch::MaterialApp;
 
 use proxmox_login::Authentication;
 use proxmox_yew_comp::{
-    authentication_from_cookie, http_post, http_set_auth, register_auth_observer,
-    stop_ticket_refresh_loop, AuthObserver, ExistingProduct,
+    authentication_from_cookie, available_language_list, http_post, http_set_auth,
+    register_auth_observer, stop_ticket_refresh_loop, AuthObserver, ExistingProduct,
 };
 
 // Note: The server provides this data with the template
@@ -201,11 +199,8 @@ fn main() {
     proxmox_yew_comp::http_setup(&ExistingProduct::PMG);
 
     pwt::state::set_available_themes(&["Mobile"]);
-    pwt::state::set_available_languages(vec![LanguageInfo::new(
-        "en",
-        "English",
-        gettext_noop("English"),
-    )]);
+    pwt::state::set_available_languages(available_language_list());
+
     pwt::props::set_http_get_method(
         |url| async move { proxmox_yew_comp::http_get(&url, None).await },
     );
