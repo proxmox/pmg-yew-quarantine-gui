@@ -222,7 +222,7 @@ impl Component for PmgPageSpamList {
                     .class(JustifyContent::Stretch)
                     .padding(1)
                     .with_child(
-                        Button::new(tr!("No valid Subscription"))
+                        Button::new(tr!("No valid subscription"))
                             .icon_class("fa fa-exclamation-triangle")
                             .class("pwt-button-text")
                             .on_activate(ctx.link().callback(|_| Msg::ShowSubscriptionNotice)),
