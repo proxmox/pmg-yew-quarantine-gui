@@ -1,7 +1,5 @@
 mod spam_list;
 
-use anyhow::Error;
-use serde_json::{json, Value};
 pub use spam_list::SpamList;
 
 mod page_mail_view;
@@ -16,7 +14,11 @@ pub use page_not_found::PageNotFound;
 mod page_login;
 pub use page_login::PageLogin;
 
-use gloo_utils::document;
+use anyhow::Error;
+use gloo_utils::{document, format::JsValueSerdeExt};
+use serde::Deserialize;
+use serde_json::{json, Value};
+use wasm_bindgen::JsValue;
 use yew::prelude::*;
 use yew_router::Routable;
 
@@ -29,6 +31,15 @@ use proxmox_yew_comp::{
     authentication_from_cookie, http_post, http_set_auth, register_auth_observer,
     stop_ticket_refresh_loop, AuthObserver, ExistingProduct,
 };
+
+// Note: The server provides this data with the template
+#[derive(Deserialize)]
+#[allow(non_snake_case)]
+pub struct ServerConfig {
+    pub i18nVersion: String,
+    pub uiVersion: String,
+    pub basePath: String,
+}
 
 pub enum Msg {
     Login(Authentication),
@@ -65,6 +76,7 @@ fn switch(route: &str) -> Vec<Html> {
 struct PmgQuarantineApp {
     login_info: Option<Authentication>,
     _auth_observer: AuthObserver,
+    server_config: Option<ServerConfig>,
 }
 
 impl Component for PmgQuarantineApp {
@@ -72,6 +84,14 @@ impl Component for PmgQuarantineApp {
     type Properties = ();
 
     fn create(ctx: &Context<Self>) -> Self {
+        let mut server_config = None;
+        if let Some(window) = web_sys::window() {
+            if let Ok(value) = js_sys::Reflect::get(&window, &JsValue::from_str("Proxmox")) {
+                if let Ok(config) = JsValueSerdeExt::into_serde::<ServerConfig>(&value) {
+                    server_config = Some(config);
+                }
+            }
+        }
         // set auth info from cookie
         let login_info = authentication_from_cookie(&ExistingProduct::PMG);
         if let Some(login_info) = &login_info {
@@ -87,6 +107,7 @@ impl Component for PmgQuarantineApp {
         Self {
             login_info,
             _auth_observer,
+            server_config,
         }
     }
 
@@ -100,7 +121,38 @@ impl Component for PmgQuarantineApp {
                 vec![PageLogin::new().on_login(link.callback(Msg::Login)).into()]
             }
         })
-        .theme_dir_prefix("/mobile/css/".into())
+        .theme_url_builder({
+            let ui_version = self.server_config.as_ref().map(|c| c.uiVersion.clone());
+            let base_path = self
+                .server_config
+                .as_ref()
+                .map(|c| c.basePath.clone())
+                .unwrap_or("/mobile".into());
+            move |theme: &String| {
+                let url = format!("{base_path}/css/{}-yew-style.css", theme.to_lowercase());
+                if let Some(version) = &ui_version {
+                    format!("{url}?v{version}")
+                } else {
+                    url
+                }
+            }
+        })
+        .catalog_url_builder({
+            let i18n_version = self.server_config.as_ref().map(|c| c.i18nVersion.clone());
+            let base_path = self
+                .server_config
+                .as_ref()
+                .map(|c| c.basePath.clone())
+                .unwrap_or("/mobile".into());
+            move |lang: &String| {
+                let url = format!("{base_path}/i18n/pmg-yew-quarantine-catalog-{lang}.mo");
+                if let Some(version) = &i18n_version {
+                    format!("{url}?v{version}")
+                } else {
+                    url
+                }
+            }
+        })
         .into()
     }
 

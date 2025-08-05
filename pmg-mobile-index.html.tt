@@ -1,3 +1,10 @@
+<!--- Index template for pmgproxy server -->
+[%
+    USE date;
+    base_path = yew_mobile_base_path or '/mobile';
+    ui_version = yew_mobile_mtime or date.now;
+    i18n_version = i18n_yew_mobile_mtime or date.now;
+%]
 <!DOCTYPE html>
 <html>
 
@@ -29,18 +36,21 @@
     <script type="text/javascript">
         Proxmox = {
             UserName: '[% username %]',
-            CSRFPreventionToken: '[% token %]'
+            CSRFPreventionToken: '[% token %]',
+            i18nVersion: '[% i18n_version %]',
+            uiVersion: '[% ui_version %]',
+            basePath: '[% base_path %]',
         };
     </script>
-    <link rel="preload" href="/mobile/js/pmg-quarantine-gui_bg.wasm.gz" as="fetch" type="application/wasm" crossorigin="">
-    <link rel="modulepreload" href="/mobile/js/pmg-quarantine-gui_bundle.js">
+    <link rel="preload" href="[% base_path %]/js/pmg-quarantine-gui_bg.wasm.gz?v=[% ui_version %]" as="fetch" type="application/wasm" crossorigin="">
+    <link rel="modulepreload" href="[% base_path %]/js/pmg-quarantine-gui_bundle.js?v=[% ui_version %]">
 </head>
 
 <body>
     <script type="module">
-        import init from '/mobile/js/pmg-quarantine-gui_bundle.js';
+        import init from '[% base_path %]/js/pmg-quarantine-gui_bundle.js?v=[% ui_version %]';
         const decompressedResponse = new Response(
-                await fetch('/mobile/js/pmg-quarantine-gui_bg.wasm.gz')
+                await fetch('[% base_path %]/js/pmg-quarantine-gui_bg.wasm.gz?v=[% ui_version %]')
                         .then(res => res.body.pipeThrough(new DecompressionStream("gzip")))
         );
         // set correct type to allow using faster WebAssembly.instantiateStreaming
