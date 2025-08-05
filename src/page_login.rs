@@ -135,7 +135,7 @@ impl Component for PmgPageLogin {
             .with_child(
                 LoginPanel::new()
                     .mobile(true)
-                    .domain_path(Some("/access/auth-realm".into()))
+                    .domain_path("/access/auth-realm")
                     .on_login(ctx.link().callback(Msg::Login)),
             )
             .into()
