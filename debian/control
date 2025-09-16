@@ -36,7 +36,7 @@ Build-Depends: debhelper-compat (= 13),
                libstd-rust-dev,
                proxmox-wasm-builder,
                rust-grass,
-               rustc:native
+               rustc:native,
 Maintainer: Proxmox Support Team <support@proxmox.com>
 Standards-Version: 4.6.1
 Vcs-Git: git://git.proxmox.com/git/pmg-mobile-quarantine-ui.git
@@ -47,7 +47,7 @@ Rules-Requires-Root: no
 Package: pmg-mobile-quarantine-ui
 Architecture: any
 Multi-Arch: allowed
-Depends: ${misc:Depends}
+Depends: pmg-yew-quarantine-i18n, ${misc:Depends},
 Description: Mobile web UI for the Proxmox Mail Gateway Quarantine.
  Provides the web UI for Proxmox Mail Gateway (Spam) Quarantine user interface.
  It's written in the rust programming language using the Yew web framework and
