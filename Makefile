@@ -1,7 +1,7 @@
 include /usr/share/dpkg/default.mk
 
 PACKAGE=pmg-mobile-quarantine-ui
-CRATENAME=pmg-quarantine-gui
+CRATENAME=pmg-mobile-quarantine-ui
 
 BUILDDIR ?= $(PACKAGE)-$(DEB_VERSION_UPSTREAM)
 ORIG_SRC_TAR=$(PACKAGE)_$(DEB_VERSION_UPSTREAM).orig.tar.gz
@@ -24,9 +24,9 @@ PREFIX = /usr
 UIDIR = $(PREFIX)/share/$(PACKAGE)
 
 COMPILED_OUTPUT := \
-	dist/pmg-quarantine-gui_bundle.js \
-	dist/pmg-quarantine-gui_bg.wasm.gz \
-	dist/mobile-yew-style.css
+	dist/$(CRATENAME)_bundle.js \
+	dist/$(CRATENAME)_bg.wasm.gz \
+	dist/mobile-yew-style.css \
 
 all: $(COMPILED_OUTPUT)
 
@@ -43,9 +43,9 @@ rebuild:
 dist/$(CRATENAME)_bg.wasm.gz: dist/$(CRATENAME)_bg.wasm
 	gzip -c9 $^ > $@
 
-dist/pmg-quarantine-gui_bundle.js: dist/$(CRATENAME).js dist/$(CRATENAME)_bg.wasm
-	esbuild --bundle dist/$(CRATENAME).js --format=esm > dist/pmg-quarantine-gui_bundle.js.tmp
-	mv dist/pmg-quarantine-gui_bundle.js.tmp dist/pmg-quarantine-gui_bundle.js
+dist/$(CRATENAME)_bundle.js: dist/$(CRATENAME).js dist/$(CRATENAME)_bg.wasm
+	esbuild --bundle dist/$(CRATENAME).js --format=esm > dist/$(CRATENAME)_bundle.js.tmp
+	mv dist/$(CRATENAME)_bundle.js.tmp dist/$(CRATENAME)_bundle.js
 
 dist/%.css: pwt-assets/scss/%.scss dist
 	rust-grass $< $@
@@ -62,8 +62,8 @@ install: $(COMPILED_OUTPUT) pmg-mobile-index.html.tt
 	install -m0644 pwt-assets/assets/fonts/RobotoFlexVariableFont.ttf $(DESTDIR)$(UIDIR)/fonts
 	install -m0644 pwt-assets/assets/fonts/RobotoFlexVariableFont.woff2 $(DESTDIR)$(UIDIR)/fonts
 
-	install -m0644 dist/pmg-quarantine-gui_bundle.js $(DESTDIR)$(UIDIR)/
-	install -m0644 dist/pmg-quarantine-gui_bg.wasm.gz $(DESTDIR)$(UIDIR)/
+	install -m0644 dist/$(CRATENAME)_bundle.js $(DESTDIR)$(UIDIR)/
+	install -m0644 dist/$(CRATENAME)_bg.wasm.gz $(DESTDIR)$(UIDIR)/
 	install -m0644 dist/mobile-yew-style.css $(DESTDIR)$(UIDIR)/css
 	install -m0644 pmg-mobile-index.html.tt $(DESTDIR)$(UIDIR)
 
