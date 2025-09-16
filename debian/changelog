@@ -1,3 +1,11 @@
+pmg-mobile-quarantine-ui (0.2.1) trixie; urgency=medium
+
+  * d/control: add pmg-yew-quarantine-i18n as dependency.
+
+  * index: update wasm/bundle file names to currently used ones.
+
+ -- Proxmox Support Team <support@proxmox.com>  Tue, 16 Sep 2025 23:33:25 +0200
+
 pmg-mobile-quarantine-ui (0.2.0) trixie; urgency=medium
 
   * Add support for translations.
