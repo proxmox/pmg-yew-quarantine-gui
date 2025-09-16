@@ -51,6 +51,7 @@ Package: pmg-mobile-quarantine-ui
 Architecture: any
 Multi-Arch: allowed
 Depends: ${misc:Depends}
-Description: Mobile Web UI for the Proxmox Mail Gateway Quarantine.
- Provides the Web UI written in rust for the Mobile Quarantine interface,
- intended to be viewed via a smartphone.
+Description: Mobile web UI for the Proxmox Mail Gateway Quarantine.
+ Provides the web UI for Proxmox Mail Gateway (Spam) Quarantine user interface.
+ It's written in the rust programming language using the Yew web framework and
+ intended to be viewed on smartphones or other devices with smaller displays.
