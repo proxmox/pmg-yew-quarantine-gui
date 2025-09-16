@@ -1,3 +1,17 @@
+pmg-mobile-quarantine-ui (0.2.0) trixie; urgency=medium
+
+  * Add support for translations.
+
+  * Packaging clean-ups.
+
+  * Compress WASM as GZ on build already.
+
+  * Add TemplateToolkit based index for pmgproxy.
+
+  * Various UI/UX fixes.
+
+ -- Proxmox Support Team <support@proxmox.com>  Tue, 16 Sep 2025 21:41:28 +0200
+
 pmg-mobile-quarantine-ui (0.1.0) trixie; urgency=medium
 
   * Initial release.
