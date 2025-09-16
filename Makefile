@@ -21,7 +21,7 @@ endif
 
 DESTDIR =
 PREFIX = /usr
-UIDIR = $(PREFIX)/share/javascript/pmg-mobile-quarantine-gui
+UIDIR = $(PREFIX)/share/$(PACKAGE)
 
 COMPILED_OUTPUT := \
 	dist/pmg-quarantine-gui_bundle.js \
@@ -52,7 +52,6 @@ dist/%.css: pwt-assets/scss/%.scss dist
 
 install: $(COMPILED_OUTPUT) pmg-mobile-index.html.tt
 	install -dm0755 $(DESTDIR)$(UIDIR)
-	install -dm0755 $(DESTDIR)$(UIDIR)/js
 	install -dm0755 $(DESTDIR)$(UIDIR)/css
 
 	install -dm0755 $(DESTDIR)$(UIDIR)/images
@@ -63,8 +62,8 @@ install: $(COMPILED_OUTPUT) pmg-mobile-index.html.tt
 	install -m0644 pwt-assets/assets/fonts/RobotoFlexVariableFont.ttf $(DESTDIR)$(UIDIR)/fonts
 	install -m0644 pwt-assets/assets/fonts/RobotoFlexVariableFont.woff2 $(DESTDIR)$(UIDIR)/fonts
 
-	install -m0644 dist/pmg-quarantine-gui_bundle.js $(DESTDIR)$(UIDIR)/js
-	install -m0644 dist/pmg-quarantine-gui_bg.wasm.gz $(DESTDIR)$(UIDIR)/js
+	install -m0644 dist/pmg-quarantine-gui_bundle.js $(DESTDIR)$(UIDIR)/
+	install -m0644 dist/pmg-quarantine-gui_bg.wasm.gz $(DESTDIR)$(UIDIR)/
 	install -m0644 dist/mobile-yew-style.css $(DESTDIR)$(UIDIR)/css
 	install -m0644 pmg-mobile-index.html.tt $(DESTDIR)$(UIDIR)
 

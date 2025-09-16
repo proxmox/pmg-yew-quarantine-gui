@@ -42,15 +42,15 @@
             basePath: '[% base_path %]',
         };
     </script>
-    <link rel="preload" href="[% base_path %]/js/pmg-quarantine-gui_bg.wasm.gz?v=[% ui_version %]" as="fetch" type="application/wasm" crossorigin="">
-    <link rel="modulepreload" href="[% base_path %]/js/pmg-quarantine-gui_bundle.js?v=[% ui_version %]">
+    <link rel="preload" href="[% base_path %]/pmg-quarantine-gui_bg.wasm.gz?v=[% ui_version %]" as="fetch" type="application/wasm" crossorigin="">
+    <link rel="modulepreload" href="[% base_path %]/pmg-quarantine-gui_bundle.js?v=[% ui_version %]">
 </head>
 
 <body>
     <script type="module">
-        import init from '[% base_path %]/js/pmg-quarantine-gui_bundle.js?v=[% ui_version %]';
+        import init from '[% base_path %]/pmg-quarantine-gui_bundle.js?v=[% ui_version %]';
         const decompressedResponse = new Response(
-                await fetch('[% base_path %]/js/pmg-quarantine-gui_bg.wasm.gz?v=[% ui_version %]')
+                await fetch('[% base_path %]/pmg-quarantine-gui_bg.wasm.gz?v=[% ui_version %]')
                         .then(res => res.body.pipeThrough(new DecompressionStream("gzip")))
         );
         // set correct type to allow using faster WebAssembly.instantiateStreaming
