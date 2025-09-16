@@ -21,12 +21,12 @@ url = "2.1"
 percent-encoding = "2.1"
 
 proxmox-client = "1"
-proxmox-schema = "4"
+proxmox-schema = "5"
 proxmox-uuid = "1"
 proxmox-subscription = { version = "1", features = ["api-types"], default-features = false }
 
-pwt = "0.6"
-pwt-macros = "0.4"
+pwt = "0.7"
+pwt-macros = "0.5"
 
 proxmox-login = "1"
-proxmox-yew-comp = "0.5"
+proxmox-yew-comp = "0.6"
