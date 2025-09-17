@@ -5,8 +5,12 @@ use serde_json::Value;
 
 use yew::virtual_dom::{VComp, VNode};
 
+use pwt::dom::get_system_prefer_dark_mode;
 use pwt::prelude::*;
+use pwt::state::{Theme, ThemeObserver};
 use pwt::touch::{ApplicationBar, FabMenu, FabMenuEntry, Scaffold, SnackBar, SnackBarContextExt};
+use pwt::widget::form::Checkbox;
+use pwt::widget::{get_unique_element_id, FieldLabel, Row};
 
 use crate::{mail_action, MailAction};
 
@@ -23,8 +27,14 @@ impl PageMailView {
 
 pub enum Msg {
     ActionResult(Result<Value, Error>),
+    DarkmodeFilter(bool), // on/off
+    DarkmodeChange(bool), // on/off
 }
-pub struct PmgPageMailView {}
+pub struct PmgPageMailView {
+    show_dark_mode_filter: bool,
+    dark_mode_filter: bool,
+    _theme_observer: ThemeObserver,
+}
 
 impl PmgPageMailView {
     fn action_callback(&self, ctx: &Context<Self>, action: MailAction) -> Callback<MouseEvent> {
@@ -46,8 +56,12 @@ impl PmgPageMailView {
     fn content_view(&self, ctx: &Context<Self>) -> Html {
         let props = ctx.props();
 
+        let style = self
+            .dark_mode_filter
+            .then_some("filter: brightness(95%) invert(95%);");
+
         html! {
-            <iframe frameborder="0" width="100%" height="100%" sandbox="allow-same-origin"
+            <iframe {style} frameborder="0" width="100%" height="100%" sandbox="allow-same-origin"
                 src={format!("/api2/htmlmail/quarantine/content?id={}", props.id)}>
             </iframe>
         }
@@ -59,7 +73,23 @@ impl Component for PmgPageMailView {
     type Properties = PageMailView;
 
     fn create(_ctx: &Context<Self>) -> Self {
-        Self {}
+        let theme = Theme::load();
+        let dark_mode_filter = match theme.mode {
+            pwt::state::ThemeMode::System => get_system_prefer_dark_mode(),
+            pwt::state::ThemeMode::Dark => true,
+            pwt::state::ThemeMode::Light => false,
+        };
+
+        let _theme_observer = ThemeObserver::new(
+            _ctx.link()
+                .callback(|(_, dark_mode)| Msg::DarkmodeChange(dark_mode)),
+        );
+
+        Self {
+            dark_mode_filter,
+            show_dark_mode_filter: dark_mode_filter,
+            _theme_observer,
+        }
     }
 
     fn update(&mut self, ctx: &Context<Self>, msg: Self::Message) -> bool {
@@ -69,9 +99,23 @@ impl Component for PmgPageMailView {
                     ctx.link()
                         .show_snackbar(SnackBar::new().message(err.to_string()));
                 }
+                true
+            }
+            Msg::DarkmodeFilter(dark_mode_filter) => {
+                let changed = self.dark_mode_filter != dark_mode_filter;
+                self.dark_mode_filter = dark_mode_filter;
+                changed
+            }
+            Msg::DarkmodeChange(dark_mode) => {
+                let changed = self.show_dark_mode_filter != dark_mode;
+                self.show_dark_mode_filter = dark_mode;
+                // deactivate the dark mode filter if we don't show the checkbox
+                if !self.show_dark_mode_filter {
+                    self.dark_mode_filter = false;
+                }
+                changed
             }
         }
-        true
     }
 
     fn view(&self, ctx: &Context<Self>) -> Html {
@@ -98,8 +142,26 @@ impl Component for PmgPageMailView {
                 self.action_callback(ctx, MailAction::Blocklist),
             ));
 
+        let mut app_bar = ApplicationBar::new().title(tr!("Preview"));
+
+        if self.show_dark_mode_filter {
+            let id = get_unique_element_id();
+            app_bar.add_action(
+                Row::new()
+                    .class(pwt::css::AlignItems::Center)
+                    .gap(1)
+                    .with_child(FieldLabel::new(tr!("Dark-mode filter")).id(id.clone()))
+                    .with_child(
+                        Checkbox::new()
+                            .label_id(id)
+                            .checked(self.dark_mode_filter)
+                            .on_change(ctx.link().callback(Msg::DarkmodeFilter)),
+                    ),
+            );
+        }
+
         Scaffold::new()
-            .application_bar(ApplicationBar::new().title(tr!("Preview")))
+            .application_bar(app_bar)
             .body(self.content_view(ctx))
             .favorite_action_button(fab)
             .into()
