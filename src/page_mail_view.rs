@@ -88,14 +88,14 @@ impl Component for PmgPageMailView {
                 self.action_callback(ctx, MailAction::Delete),
             ))
             .with_child(FabMenuEntry::new(
-                tr!("Whitelist"),
+                tr!("Welcomelist"),
                 "fa fa-check",
-                self.action_callback(ctx, MailAction::Whitelist),
+                self.action_callback(ctx, MailAction::Welcomelist),
             ))
             .with_child(FabMenuEntry::new(
-                tr!("Blacklist"),
+                tr!("Blocklist"),
                 "fa fa-times",
-                self.action_callback(ctx, MailAction::Blacklist),
+                self.action_callback(ctx, MailAction::Blocklist),
             ));
 
         Scaffold::new()

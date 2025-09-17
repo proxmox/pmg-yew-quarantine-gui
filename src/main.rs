@@ -172,8 +172,8 @@ impl Component for PmgQuarantineApp {
 pub(crate) enum MailAction {
     Deliver,
     Delete,
-    Whitelist,
-    Blacklist,
+    Welcomelist,
+    Blocklist,
 }
 
 impl std::fmt::Display for MailAction {
@@ -181,8 +181,8 @@ impl std::fmt::Display for MailAction {
         f.write_str(match self {
             MailAction::Deliver => "deliver",
             MailAction::Delete => "delete",
-            MailAction::Whitelist => "whitelist",
-            MailAction::Blacklist => "blacklist",
+            MailAction::Welcomelist => "welcomelist",
+            MailAction::Blocklist => "blocklist",
         })
     }
 }

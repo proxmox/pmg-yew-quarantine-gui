@@ -263,9 +263,9 @@ fn render_list_item(
                                 .on_activate(make_cb(MailAction::Deliver)),
                         )
                         .with_child(
-                            SlidableAction::new(tr!("Whitelist"))
+                            SlidableAction::new(tr!("Welcomelist"))
                                 .icon_class("fa fa-check")
-                                .on_activate(make_cb(MailAction::Whitelist)),
+                                .on_activate(make_cb(MailAction::Welcomelist)),
                         ),
                 )
                 .right_actions(
@@ -273,10 +273,10 @@ fn render_list_item(
                         .style("height", "100%") // FIXME better solved in scss of slidable?
                         .class(AlignItems::Center)
                         .with_child(
-                            SlidableAction::new(tr!("Blacklist"))
+                            SlidableAction::new(tr!("Blocklist"))
                                 .class(ColorScheme::WarningContainer)
                                 .icon_class("fa fa-times")
-                                .on_activate(make_cb(MailAction::Blacklist)),
+                                .on_activate(make_cb(MailAction::Blocklist)),
                         )
                         .with_child(
                             SlidableAction::new(tr!("Delete"))
