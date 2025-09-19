@@ -1,3 +1,11 @@
+pmg-mobile-quarantine-ui (0.2.2) trixie; urgency=medium
+
+  * tree wide: replace white/blacklist with welcome/blocklist, respectively.
+
+  * mail view: implement dark-mode filter.
+
+ -- Proxmox Support Team <support@proxmox.com>  Fri, 19 Sep 2025 08:06:19 +0200
+
 pmg-mobile-quarantine-ui (0.2.1) trixie; urgency=medium
 
   * d/control: add pmg-yew-quarantine-i18n as dependency.
