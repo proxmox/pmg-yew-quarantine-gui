@@ -1,3 +1,12 @@
+pmg-mobile-quarantine-ui (0.3.0) trixie; urgency=medium
+
+  * Add a menu with options that allow users to:
+    - Change the language.
+    - Switch to desktop view.
+    - Log out.
+
+ -- Proxmox Support Team <support@proxmox.com>  Tue, 23 Sep 2025 16:50:41 +0200
+
 pmg-mobile-quarantine-ui (0.2.2) trixie; urgency=medium
 
   * tree wide: replace white/blacklist with welcome/blocklist, respectively.
