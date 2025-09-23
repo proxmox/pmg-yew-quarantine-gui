@@ -1,6 +1,7 @@
 use std::rc::Rc;
 
 use anyhow::Error;
+use gloo_utils::document;
 use js_sys::Date;
 use wasm_bindgen::JsValue;
 
@@ -9,11 +10,12 @@ use yew::prelude::*;
 use yew::virtual_dom::{VComp, VNode};
 use yew_router::scope_ext::RouterScopeExt;
 
-use pwt::css::{ColorScheme, FlexFit, JustifyContent};
+use pwt::css::{AlignItems, ColorScheme, FlexFit, JustifyContent};
 use pwt::prelude::*;
 use pwt::touch::{ApplicationBar, Fab, Scaffold};
 use pwt::widget::form::{Field, Form, FormContext, InputType};
-use pwt::widget::{Button, Column, Dialog, Image, Row, ThemeModeSelector};
+use pwt::widget::menu::{Menu, MenuButton, MenuItem};
+use pwt::widget::{Button, Column, Dialog, Image, LanguageSelector, Row, ThemeModeSelector};
 
 use proxmox_subscription::{SubscriptionInfo, SubscriptionStatus};
 use proxmox_yew_comp::http_get;
@@ -40,6 +42,7 @@ pub enum ViewState {
     Normal,
     ShowDialog,
     ShowSubscriptionNotice,
+    ShowLanguageSelect,
 }
 pub struct PmgPageSpamList {
     state: ViewState,
@@ -56,6 +59,9 @@ pub enum Msg {
     CloseDialog,
     ApplyDate,
     SubscriptionResult(Result<SubscriptionInfo, Error>),
+    SwitchToDesktop,
+    ShowLanguageSelect,
+    Logout,
 }
 
 fn epoch_to_date_string(epoch: f64) -> String {
@@ -177,6 +183,27 @@ impl Component for PmgPageSpamList {
                 self.subscription_result = Some(valid);
                 true
             }
+            Msg::SwitchToDesktop => {
+                let location = document().location().unwrap();
+                let param = match location.search() {
+                    Ok(search) => web_sys::UrlSearchParams::new_with_str(&search).unwrap(),
+                    Err(_) => web_sys::UrlSearchParams::new().unwrap(),
+                };
+                param.set("mobile", "0");
+                let search: String = param.to_string().into();
+                if let Err(err) = location.set_search(&search) {
+                    log::error!("could not set location parameter: {err:?}");
+                }
+                false
+            }
+            Msg::ShowLanguageSelect => {
+                self.state = ViewState::ShowLanguageSelect;
+                true
+            }
+            Msg::Logout => {
+                proxmox_yew_comp::http_clear_auth();
+                true
+            }
         }
     }
 
@@ -206,6 +233,18 @@ impl Component for PmgPageSpamList {
                                         .on_activate(ctx.link().callback(|_| Msg::CloseDialog)),
                                 ),
                             ),
+                    )
+                    .on_close(ctx.link().callback(|_| Msg::CloseDialog)),
+            ),
+            ViewState::ShowLanguageSelect => Some(
+                Dialog::new(tr!("Select Language"))
+                    .with_child(
+                        Row::new()
+                            .class(AlignItems::Center)
+                            .padding(4)
+                            .gap(2)
+                            .with_child(tr!("Language"))
+                            .with_child(LanguageSelector::new()),
                     )
                     .on_close(ctx.link().callback(|_| Msg::CloseDialog)),
             ),
@@ -240,7 +279,43 @@ impl Component for PmgPageSpamList {
                             .class("pwt-navbar-brand"),
                     )
                     .title("Mail")
-                    .with_action(ThemeModeSelector::new()),
+                    .with_action(
+                        Row::new()
+                            .gap(1)
+                            .with_child(ThemeModeSelector::new())
+                            .with_child(
+                                MenuButton::new("")
+                                    .class("circle")
+                                    .icon_class("fa fa-bars")
+                                    .menu(
+                                        Menu::new()
+                                            .with_item(
+                                                MenuItem::new(tr!("Language"))
+                                                    .icon_class("fa fa-language")
+                                                    .on_select(
+                                                        ctx.link()
+                                                            .callback(|_| Msg::ShowLanguageSelect),
+                                                    ),
+                                            )
+                                            .with_item(
+                                                MenuItem::new(tr!("Switch to Desktop View"))
+                                                    .icon_class("fa fa-desktop")
+                                                    .on_select(
+                                                        ctx.link()
+                                                            .callback(|_| Msg::SwitchToDesktop),
+                                                    ),
+                                            )
+                                            .with_separator()
+                                            .with_item(
+                                                MenuItem::new(tr!("Logout"))
+                                                    .icon_class("fa fa-sign-out")
+                                                    .on_select(
+                                                        ctx.link().callback(|_| Msg::Logout),
+                                                    ),
+                                            ),
+                                    ),
+                            ),
+                    ),
             )
             .body(
                 Column::new()
