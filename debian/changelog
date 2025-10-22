@@ -1,3 +1,10 @@
+pmg-mobile-quarantine-ui (0.3.1) trixie; urgency=medium
+
+  * login page: disable realm selection as user should not be able to select a
+    realm. As, e.g., for LDAP logins the e-mail address has to be entered.
+
+ -- Proxmox Support Team <support@proxmox.com>  Wed, 22 Oct 2025 19:29:25 +0200
+
 pmg-mobile-quarantine-ui (0.3.0) trixie; urgency=medium
 
   * Add a menu with options that allow users to:
