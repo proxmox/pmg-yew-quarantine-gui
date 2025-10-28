@@ -66,8 +66,11 @@ install: $(COMPILED_OUTPUT) pmg-mobile-index.html.tt
 	install -m0644 dist/mobile-yew-style.css $(DESTDIR)$(UIDIR)/css
 	install -m0644 pmg-mobile-index.html.tt $(DESTDIR)$(UIDIR)
 
+.PHONY: submodule
+submodule:
+	test -f "pwt-assets/README.md" || git submodule update --init
 
-$(BUILDDIR):
+$(BUILDDIR): submodule
 	rm -rf $@ $@.tmp
 	mkdir -p $@.tmp
 	cp -a debian/ src/ pwt-assets/ images/ pmg-mobile-index.html.tt Makefile Cargo.toml $@.tmp
