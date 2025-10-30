@@ -20,6 +20,8 @@ use proxmox_yew_comp::{
     http_login, start_ticket_refresh_loop, stop_ticket_refresh_loop, LoginPanel,
 };
 
+use crate::spam_list::extract_query_parameter;
+
 #[derive(Properties, PartialEq)]
 pub struct PageLogin {
     #[prop_or_default]
@@ -81,15 +83,19 @@ impl Component for PmgPageLogin {
         let location = document.location().unwrap();
         let path = location.pathname().unwrap();
         if path == "/quarantine" {
-            let search = location.search().unwrap();
-            let param = web_sys::UrlSearchParams::new_with_str(&search).unwrap();
-            if let Some(ticket) = param.get("ticket") {
-                let ticket = percent_decode_str(&ticket).decode_utf8_lossy();
-                if ticket.starts_with("PMGQUAR:") {
-                    if let Some(username) = ticket.split(":").nth(1) {
-                        Self::ticket_login(ctx, username.to_string(), ticket.to_string());
-                        stop_ticket_refresh_loop();
+            match extract_query_parameter("ticket") {
+                Ok(Some(ticket)) => {
+                    let ticket = percent_decode_str(&ticket).decode_utf8_lossy();
+                    if ticket.starts_with("PMGQUAR:") {
+                        if let Some(username) = ticket.split(":").nth(1) {
+                            Self::ticket_login(ctx, username.to_string(), ticket.to_string());
+                            stop_ticket_refresh_loop();
+                        }
                     }
+                }
+                Ok(None) => {}
+                Err(err) => {
+                    log::error!("could not extract 'ticket' parameter from query: {err}");
                 }
             }
         }

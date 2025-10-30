@@ -1,10 +1,14 @@
-use anyhow::Error;
-use wasm_bindgen::JsValue;
+use std::{rc::Rc, str::FromStr};
 
-use core::clone::Clone;
+use anyhow::{format_err, Error};
+use gloo_utils::window;
 use js_sys::Date;
+use serde::{Deserialize, Serialize};
 use serde_json::Value;
-use std::rc::Rc;
+use url::Url;
+use wasm_bindgen::JsValue;
+use yew::html::{IntoEventCallback, IntoPropValue};
+use yew::virtual_dom::{VComp, VNode};
 
 use pwt::{
     css::{AlignItems, ColorScheme, FlexFit, Opacity, Overflow},
@@ -12,16 +16,9 @@ use pwt::{
     touch::{Slidable, SlidableAction, SnackBar, SnackBarContextExt},
     widget::{error_message, Container, Fa, List, ListTile, Progress, Row},
 };
-use yew::{
-    html::{IntoEventCallback, IntoPropValue},
-    virtual_dom::{VComp, VNode},
-};
-//use yew::html::IntoEventCallback;
 
 use proxmox_yew_comp::http_get;
 use pwt::widget::Column;
-
-use serde::{Deserialize, Serialize};
 
 use crate::{mail_action, MailAction};
 
@@ -110,6 +107,19 @@ impl Component for PmgSpamList {
 
     fn create(ctx: &Context<Self>) -> Self {
         let me = Self { data: None };
+
+        match extract_mail_action_from_query_params() {
+            Ok(None) => {}
+            Ok(Some((id, action))) => {
+                ctx.link().send_message(Msg::Action(id, action));
+            }
+            Err(err) => {
+                ctx.link().show_snackbar(
+                    SnackBar::new().message(format!("could not execute action: {err}")),
+                );
+            }
+        }
+
         me.load(ctx);
         me
     }
@@ -145,9 +155,11 @@ impl Component for PmgSpamList {
             Msg::Action(id, action) => {
                 let link = ctx.link().clone();
                 wasm_bindgen_futures::spawn_local(async move {
-                    if let Err(err) = mail_action(&id, action).await {
-                        link.show_snackbar(SnackBar::new().message(err.to_string()));
-                    }
+                    let msg = match mail_action(&id, action).await {
+                        Ok(_) => tr!("Action '{0}' successful", action),
+                        Err(err) => err.to_string(),
+                    };
+                    link.show_snackbar(SnackBar::new().message(msg));
                     link.send_message(Msg::Reload);
                 });
                 return false;
@@ -298,4 +310,44 @@ fn epoch_to_date(epoch: i64) -> String {
         date.get_month() + 1,
         date.get_date()
     )
+}
+
+fn extract_mail_action_from_query_params() -> Result<Option<(String, MailAction)>, Error> {
+    let id = extract_query_parameter("cselect")?;
+    let action = extract_query_parameter("action")?;
+
+    if let (Some(id), Some(action)) = (id, action) {
+        let action = MailAction::from_str(&action)?;
+        return Ok(Some((id, action)));
+    }
+    Ok(None)
+}
+
+/// Removes `name` parameter from the get values via the browser `history` object and returns it
+/// if it exists.
+pub fn extract_query_parameter(name: &str) -> Result<Option<String>, Error> {
+    let location = window().location();
+    let history = window().history().unwrap();
+    let search = location.search().unwrap();
+    let param = web_sys::UrlSearchParams::new_with_str(&search).unwrap();
+
+    if let Some(value) = param.get(name) {
+        param.delete(name);
+
+        let mut url = Url::parse(
+            &location
+                .href()
+                .map_err(|err| format_err!("could not get location: {err:?}"))?,
+        )?;
+        let query: String = param.to_string().into();
+
+        url.set_query(Some(&query));
+        history
+            .replace_state_with_url(&JsValue::null(), "", Some(url.as_str()))
+            .map_err(|err| format_err!("could not set url: {err:?}"))?;
+
+        return Ok(Some(value));
+    }
+
+    Ok(None)
 }

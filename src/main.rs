@@ -14,8 +14,8 @@ pub use page_not_found::PageNotFound;
 mod page_login;
 pub use page_login::PageLogin;
 
-use anyhow::Error;
-use gloo_utils::{document, format::JsValueSerdeExt};
+use anyhow::{format_err, Error};
+use gloo_utils::format::JsValueSerdeExt;
 use serde::Deserialize;
 use serde_json::{json, Value};
 use wasm_bindgen::JsValue;
@@ -158,9 +158,10 @@ impl Component for PmgQuarantineApp {
         match msg {
             Msg::Login(info) => {
                 self.login_info = Some(info.clone());
-                let document = document();
-                let location = document.location().unwrap();
-                let _ = location.replace(&location.pathname().unwrap());
+                http_set_auth(info.clone());
+                if info.ticket.to_string().starts_with("PMGQUAR:") {
+                    stop_ticket_refresh_loop();
+                }
             }
             Msg::Logout => self.login_info = None,
         }
@@ -184,6 +185,19 @@ impl std::fmt::Display for MailAction {
             MailAction::Welcomelist => "welcomelist",
             MailAction::Blocklist => "blocklist",
         })
+    }
+}
+
+impl std::str::FromStr for MailAction {
+    type Err = anyhow::Error;
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s {
+            "deliver" => Ok(MailAction::Deliver),
+            "delete" => Ok(MailAction::Delete),
+            "welcomelist" | "whitelist" => Ok(MailAction::Welcomelist),
+            "blocklist" | "blacklist" => Ok(MailAction::Blocklist),
+            _ => Err(format_err!("unknown quarantine action")),
+        }
     }
 }
 
