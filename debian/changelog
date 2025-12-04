@@ -1,3 +1,9 @@
+pmg-mobile-quarantine-ui (0.4.0) trixie; urgency=medium
+
+  * execute actions when opening gui from a link from quarantine mails.
+
+ -- Proxmox Support Team <support@proxmox.com>  Thu, 04 Dec 2025 20:02:53 +0100
+
 pmg-mobile-quarantine-ui (0.3.1) trixie; urgency=medium
 
   * login page: disable realm selection as user should not be able to select a
