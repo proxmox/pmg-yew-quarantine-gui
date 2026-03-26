@@ -25,8 +25,8 @@ proxmox-schema = "5"
 proxmox-uuid = "1"
 proxmox-subscription = { version = "1", features = ["api-types"], default-features = false }
 
-pwt = "0.7"
+pwt = "0.8"
 pwt-macros = "0.5"
 
 proxmox-login = "1"
-proxmox-yew-comp = "0.7.12"
+proxmox-yew-comp = "0.8"
