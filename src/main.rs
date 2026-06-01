@@ -175,6 +175,8 @@ pub(crate) enum MailAction {
     Delete,
     Welcomelist,
     Blocklist,
+    MarkSeen,
+    MarkUnseen,
 }
 
 impl std::fmt::Display for MailAction {
@@ -184,6 +186,8 @@ impl std::fmt::Display for MailAction {
             MailAction::Delete => "delete",
             MailAction::Welcomelist => "welcomelist",
             MailAction::Blocklist => "blocklist",
+            MailAction::MarkSeen => "mark-seen",
+            MailAction::MarkUnseen => "mark-unseen",
         })
     }
 }
@@ -196,6 +200,8 @@ impl std::str::FromStr for MailAction {
             "delete" => Ok(MailAction::Delete),
             "welcomelist" | "whitelist" => Ok(MailAction::Welcomelist),
             "blocklist" | "blacklist" => Ok(MailAction::Blocklist),
+            "mark-seen" => Ok(MailAction::MarkSeen),
+            "mark-unseen" => Ok(MailAction::MarkUnseen),
             _ => Err(format_err!("unknown quarantine action")),
         }
     }

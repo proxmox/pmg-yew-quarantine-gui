@@ -45,7 +45,23 @@ pub struct MailInfo {
     pub spamlevel_positive: f64,
     #[serde(default)]
     pub spamlevel_negative: f64,
+    // whether the mail was marked as seen; accept both JSON bool and the 1/0 a
+    // Perl API may emit
+    #[serde(default, deserialize_with = "deserialize_flexible_bool")]
+    pub seen: bool,
     pub time: i64,
+}
+
+fn deserialize_flexible_bool<'de, D>(deserializer: D) -> Result<bool, D::Error>
+where
+    D: serde::Deserializer<'de>,
+{
+    Ok(match Value::deserialize(deserializer)? {
+        Value::Bool(b) => b,
+        Value::Number(n) => n.as_i64().is_some_and(|v| v != 0),
+        Value::String(s) => s == "1" || s.eq_ignore_ascii_case("true"),
+        _ => false,
+    })
 }
 
 #[derive(Clone)]
@@ -251,14 +267,19 @@ fn render_list_item(
                         { format!("+{:.1} / {:.1}", item.spamlevel_positive, item.spamlevel_negative) }
                     </span>
                 });
-            let main = Row::new()
+            let mut main = Row::new()
                 .class(FlexFit)
                 .gap(1)
                 .padding_x(2)
                 .padding_y(1)
                 .border_bottom(true)
                 .class(AlignItems::Center)
-                .style("cursor", "pointer")
+                .style("cursor", "pointer");
+            // dim seen mails and flag them with a leading marker
+            if item.seen {
+                main = main.class(Opacity::Half).with_child(Fa::new("check"));
+            }
+            let main = main
                 .with_child(content)
                 .with_child(score)
                 .with_child(Fa::new("chevron-right").class(Opacity::Half));
@@ -288,6 +309,11 @@ fn render_list_item(
                             SlidableAction::new(tr!("Welcomelist"))
                                 .icon_class("fa fa-check")
                                 .on_activate(make_cb(MailAction::Welcomelist)),
+                        )
+                        .with_child(
+                            SlidableAction::new(tr!("Mark as Seen"))
+                                .icon_class("fa fa-eye")
+                                .on_activate(make_cb(MailAction::MarkSeen)),
                         ),
                 )
                 .right_actions(

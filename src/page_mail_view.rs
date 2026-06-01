@@ -26,7 +26,7 @@ impl PageMailView {
 }
 
 pub enum Msg {
-    ActionResult(Result<Value, Error>),
+    ActionResult(MailAction, Result<Value, Error>),
     DarkmodeFilter(bool), // on/off
     DarkmodeChange(bool), // on/off
 }
@@ -48,7 +48,7 @@ impl PmgPageMailView {
             let id = id.clone();
             wasm_bindgen_futures::spawn_local(async move {
                 let result = mail_action(&id, action).await;
-                link.send_message(Msg::ActionResult(result));
+                link.send_message(Msg::ActionResult(action, result));
             });
         })
     }
@@ -94,11 +94,12 @@ impl Component for PmgPageMailView {
 
     fn update(&mut self, ctx: &Context<Self>, msg: Self::Message) -> bool {
         match msg {
-            Msg::ActionResult(result) => {
-                if let Err(err) = result {
-                    ctx.link()
-                        .show_snackbar(SnackBar::new().message(err.to_string()));
-                }
+            Msg::ActionResult(action, result) => {
+                let message = match result {
+                    Ok(_) => tr!("Action '{0}' successful", action),
+                    Err(err) => err.to_string(),
+                };
+                ctx.link().show_snackbar(SnackBar::new().message(message));
                 true
             }
             Msg::DarkmodeFilter(dark_mode_filter) => {
@@ -140,6 +141,16 @@ impl Component for PmgPageMailView {
                 tr!("Blocklist"),
                 "fa fa-times",
                 self.action_callback(ctx, MailAction::Blocklist),
+            ))
+            .with_child(FabMenuEntry::new(
+                tr!("Mark as Seen"),
+                "fa fa-eye",
+                self.action_callback(ctx, MailAction::MarkSeen),
+            ))
+            .with_child(FabMenuEntry::new(
+                tr!("Mark as Unseen"),
+                "fa fa-eye-slash",
+                self.action_callback(ctx, MailAction::MarkUnseen),
             ));
 
         let mut app_bar = ApplicationBar::new().title(tr!("Preview"));
