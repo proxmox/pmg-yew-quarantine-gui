@@ -30,7 +30,7 @@ pub struct SpamListParam {
     endtime: Option<u64>,
 }
 
-#[derive(Deserialize, Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
+#[derive(Deserialize, Debug, Clone, PartialEq)]
 pub struct MailInfo {
     //pub bytes: i64,
     pub from: String,
@@ -39,6 +39,12 @@ pub struct MailInfo {
     //pub receiver: String,
     //pub envelope_sender: String,
     pub spamlevel: i64,
+    // sum of the positive resp. negative spam test scores; these are fractional,
+    // hence f64 (which is why MailInfo cannot derive Eq/Ord)
+    #[serde(default)]
+    pub spamlevel_positive: f64,
+    #[serde(default)]
+    pub spamlevel_negative: f64,
     pub time: i64,
 }
 
@@ -131,10 +137,7 @@ impl Component for PmgSpamList {
             }
             Msg::LoadResult(result) => match result {
                 Ok(mut data) => {
-                    data.sort_by(|a, b| match b.time.cmp(&a.time) {
-                        core::cmp::Ordering::Equal => a.cmp(b),
-                        other => other,
-                    });
+                    data.sort_by(|a, b| b.time.cmp(&a.time).then_with(|| a.id.cmp(&b.id)));
 
                     let mut res = Vec::new();
                     let mut last_date = String::new();
@@ -237,10 +240,17 @@ fn render_list_item(
                 .with_child(html! {
                     <div class="pwt-font-title-small pwt-text-truncate">{&item.subject}</div>
                 });
-            let score = Container::new()
+            // show the net score plus the separate sums of positive and negative
+            // test scores, which gives a better feel for borderline mails
+            let score = Column::new()
                 .class("pwt-white-space-nowrap")
                 .class(Opacity::Half)
-                .with_child(tr!("Score: {0}", item.spamlevel));
+                .with_child(tr!("Score: {0}", item.spamlevel))
+                .with_child(html! {
+                    <span class="pwt-font-label-small">
+                        { format!("+{:.1} / {:.1}", item.spamlevel_positive, item.spamlevel_negative) }
+                    </span>
+                });
             let main = Row::new()
                 .class(FlexFit)
                 .gap(1)
