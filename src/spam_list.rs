@@ -13,6 +13,7 @@ use yew::virtual_dom::{VComp, VNode};
 use pwt::{
     css::{AlignItems, ColorScheme, FlexFit, Opacity, Overflow},
     prelude::*,
+    state::SharedStateObserver,
     touch::{Slidable, SlidableAction, SnackBar, SnackBarContextExt},
     widget::{error_message, Container, Fa, List, ListTile, Progress, Row},
 };
@@ -20,7 +21,7 @@ use pwt::{
 use proxmox_yew_comp::http_get;
 use pwt::widget::Column;
 
-use crate::{mail_action, MailAction};
+use crate::{mail_action, MailAction, QuarantineReload};
 
 #[derive(Copy, Clone, Serialize, Default, PartialEq)]
 pub struct SpamListParam {
@@ -107,6 +108,8 @@ pub enum Msg {
 
 pub struct PmgSpamList {
     data: Option<Result<Vec<ListEntry>, Error>>,
+    // kept alive to keep the reload listener registered on the shared trigger
+    _reload_observer: Option<SharedStateObserver<usize>>,
 }
 
 impl PmgSpamList {
@@ -128,7 +131,18 @@ impl Component for PmgSpamList {
     type Properties = SpamList;
 
     fn create(ctx: &Context<Self>) -> Self {
-        let me = Self { data: None };
+        // The page stack keeps this list mounted while the mail view sits on top,
+        // so it would otherwise not notice actions taken there. Reload on every
+        // bump of the shared trigger to stay in sync once the user returns.
+        let reload_observer = ctx
+            .link()
+            .context::<QuarantineReload>(Callback::noop())
+            .map(|(reload, _handle)| reload.0.add_listener(ctx.link().callback(|_| Msg::Reload)));
+
+        let me = Self {
+            data: None,
+            _reload_observer: reload_observer,
+        };
 
         match extract_mail_action_from_query_params() {
             Ok(None) => {}

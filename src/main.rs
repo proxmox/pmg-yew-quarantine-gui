@@ -22,6 +22,7 @@ use wasm_bindgen::JsValue;
 use yew::prelude::*;
 use yew_router::Routable;
 
+use pwt::state::SharedState;
 use pwt::touch::MaterialApp;
 
 use proxmox_login::Authentication;
@@ -75,6 +76,7 @@ struct PmgQuarantineApp {
     login_info: Option<Authentication>,
     _auth_observer: AuthObserver,
     server_config: Option<ServerConfig>,
+    reload: QuarantineReload,
 }
 
 impl Component for PmgQuarantineApp {
@@ -106,13 +108,14 @@ impl Component for PmgQuarantineApp {
             login_info,
             _auth_observer,
             server_config,
+            reload: QuarantineReload(SharedState::new(0)),
         }
     }
 
     fn view(&self, ctx: &Context<Self>) -> Html {
         let link = ctx.link().clone();
         let logged_in = self.login_info.is_some();
-        MaterialApp::new(move |path: &str| {
+        let app = MaterialApp::new(move |path: &str| {
             if logged_in {
                 switch(path)
             } else {
@@ -150,8 +153,13 @@ impl Component for PmgQuarantineApp {
                     url
                 }
             }
-        })
-        .into()
+        });
+
+        html! {
+            <ContextProvider<QuarantineReload> context={self.reload.clone()}>
+                { Html::from(app) }
+            </ContextProvider<QuarantineReload>>
+        }
     }
 
     fn update(&mut self, _ctx: &Context<Self>, msg: Self::Message) -> bool {
@@ -168,6 +176,12 @@ impl Component for PmgQuarantineApp {
         true
     }
 }
+
+/// Shared reload trigger. The mail view bumps it after a successful action so
+/// the spam list, which the page stack keeps mounted underneath the mail view,
+/// refreshes itself instead of showing stale entries once the user returns.
+#[derive(Clone, PartialEq)]
+pub(crate) struct QuarantineReload(pub SharedState<usize>);
 
 #[derive(Clone, Copy, PartialEq)]
 pub(crate) enum MailAction {

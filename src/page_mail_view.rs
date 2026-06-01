@@ -8,12 +8,12 @@ use yew::virtual_dom::{VComp, VNode};
 use proxmox_yew_comp::http_get;
 use pwt::dom::get_system_prefer_dark_mode;
 use pwt::prelude::*;
-use pwt::state::{Theme, ThemeObserver};
+use pwt::state::{SharedState, Theme, ThemeObserver};
 use pwt::touch::{ApplicationBar, FabMenu, FabMenuEntry, Scaffold, SnackBar, SnackBarContextExt};
 use pwt::widget::form::Checkbox;
 use pwt::widget::{get_unique_element_id, FieldLabel, Row};
 
-use crate::{mail_action, MailAction};
+use crate::{mail_action, MailAction, QuarantineReload};
 
 // whether the mail has external images the on-demand mode blocks, so the
 // "Load images" toggle is only offered when it would actually fetch something
@@ -57,6 +57,7 @@ pub struct PmgPageMailView {
     load_images: bool,
     show_load_images: bool,
     _theme_observer: ThemeObserver,
+    reload: Option<SharedState<usize>>,
 }
 
 impl PmgPageMailView {
@@ -115,6 +116,11 @@ impl Component for PmgPageMailView {
                 .callback(|(_, dark_mode)| Msg::DarkmodeChange(dark_mode)),
         );
 
+        let reload = ctx
+            .link()
+            .context::<QuarantineReload>(Callback::noop())
+            .map(|(reload, _handle)| reload.0);
+
         let link = ctx.link().clone();
         let id = ctx.props().id.clone();
         wasm_bindgen_futures::spawn_local(async move {
@@ -127,6 +133,7 @@ impl Component for PmgPageMailView {
             load_images: false,
             show_load_images: false,
             _theme_observer,
+            reload,
         }
     }
 
@@ -134,7 +141,13 @@ impl Component for PmgPageMailView {
         match msg {
             Msg::ActionResult(action, result) => {
                 let message = match result {
-                    Ok(_) => tr!("Action '{0}' successful", action),
+                    Ok(_) => {
+                        // notify the (still mounted) spam list so it refreshes
+                        if let Some(reload) = &self.reload {
+                            **reload.write() += 1;
+                        }
+                        tr!("Action '{0}' successful", action)
+                    }
                     Err(err) => err.to_string(),
                 };
                 ctx.link().show_snackbar(SnackBar::new().message(message));
