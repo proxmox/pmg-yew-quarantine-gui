@@ -18,9 +18,32 @@ use pwt::widget::menu::{Menu, MenuButton, MenuItem};
 use pwt::widget::{Button, Column, Dialog, Image, LanguageSelector, Row, ThemeModeSelector};
 
 use proxmox_subscription::{SubscriptionInfo, SubscriptionStatus};
-use proxmox_yew_comp::http_get;
+use proxmox_yew_comp::{http_get, Markdown};
 
 use crate::{Route, SpamList};
+
+const ABOUT_TEXT: &str =
+    "This is the end-user email quarantine interface provided by your email provider.
+
+Proxmox Mail Gateway is software that scans email for threats such as spam or viruses.
+
+Typically, emails that contain viruses or are identified as specific spam are blocked by your
+provider.
+Emails that are not classified as specific spam can be quarantined for the recipient to decide
+whether to receive or delete them. In most setups, you will receive a spam report email notifying
+you when mail is quarantined for your address.
+
+You also have the option to block or welcomelist certain addresses:
+
+* Welcomelist results in mails from these addresses to be delivered directly
+  instead of being quarantined.
+* Blocklist results in mails from these addresses to be deleted directly
+  instead of being quarantined.
+
+**Note:** The sending of *Spam Report* emails and this web application is controlled by your email
+provider.
+
+Proxmox Server Solutions GmbH develops the software and does not operate email services for users.";
 
 #[derive(Clone, PartialEq, Properties)]
 pub struct PageSpamList {}
@@ -43,6 +66,7 @@ pub enum ViewState {
     ShowDialog,
     ShowSubscriptionNotice,
     ShowLanguageSelect,
+    ShowAbout,
 }
 pub struct PmgPageSpamList {
     state: ViewState,
@@ -61,6 +85,7 @@ pub enum Msg {
     SubscriptionResult(Result<SubscriptionInfo, Error>),
     SwitchToDesktop,
     ShowLanguageSelect,
+    ShowAbout,
     Logout,
 }
 
@@ -200,6 +225,10 @@ impl Component for PmgPageSpamList {
                 self.state = ViewState::ShowLanguageSelect;
                 true
             }
+            Msg::ShowAbout => {
+                self.state = ViewState::ShowAbout;
+                true
+            }
             Msg::Logout => {
                 proxmox_yew_comp::http_clear_auth();
                 true
@@ -246,6 +275,23 @@ impl Component for PmgPageSpamList {
                             .gap(2)
                             .with_child(tr!("Language"))
                             .with_child(LanguageSelector::new()),
+                    )
+                    .on_close(link.callback(|_| Msg::CloseDialog)),
+            ),
+            ViewState::ShowAbout => Some(
+                Dialog::new(tr!("About"))
+                    .with_child(
+                        Column::new()
+                            .class(FlexFit)
+                            .padding_x(2)
+                            .padding_bottom(2)
+                            .with_child(Markdown::new().class(FlexFit).text(ABOUT_TEXT))
+                            .with_child(
+                                Row::new().class(JustifyContent::FlexEnd).with_child(
+                                    Button::new(tr!("OK"))
+                                        .on_activate(link.callback(|_| Msg::CloseDialog)),
+                                ),
+                            ),
                     )
                     .on_close(link.callback(|_| Msg::CloseDialog)),
             ),
@@ -303,6 +349,11 @@ impl Component for PmgPageSpamList {
                                                     .on_select(
                                                         link.callback(|_| Msg::SwitchToDesktop),
                                                     ),
+                                            )
+                                            .with_item(
+                                                MenuItem::new(tr!("About"))
+                                                    .icon_class("fa fa-question-circle")
+                                                    .on_select(link.callback(|_| Msg::ShowAbout)),
                                             )
                                             .with_separator()
                                             .with_item(
