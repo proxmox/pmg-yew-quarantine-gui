@@ -208,17 +208,18 @@ impl Component for PmgPageSpamList {
     }
 
     fn view(&self, ctx: &Context<Self>) -> Html {
+        let link = ctx.link();
         let content = SpamList::new()
             .starttime((self.start_date / 1000.0) as u64)
             .endtime((self.end_date / 1000.0) as u64)
-            .on_preview(ctx.link().callback(Msg::Preview));
+            .on_preview(link.callback(Msg::Preview));
 
         let dialog = match self.state {
             ViewState::Normal => None,
             ViewState::ShowDialog => Some(
                 Dialog::new(tr!("Select Date"))
                     .with_child(self.date_range_form(ctx))
-                    .on_close(ctx.link().callback(|_| Msg::CloseDialog)),
+                    .on_close(link.callback(|_| Msg::CloseDialog)),
             ),
             ViewState::ShowSubscriptionNotice => Some(
                 Dialog::new(tr!("No valid subscription"))
@@ -230,11 +231,11 @@ impl Component for PmgPageSpamList {
                             .with_child(
                                 Row::new().class(JustifyContent::FlexEnd).with_child(
                                     Button::new(tr!("OK"))
-                                        .on_activate(ctx.link().callback(|_| Msg::CloseDialog)),
+                                        .on_activate(link.callback(|_| Msg::CloseDialog)),
                                 ),
                             ),
                     )
-                    .on_close(ctx.link().callback(|_| Msg::CloseDialog)),
+                    .on_close(link.callback(|_| Msg::CloseDialog)),
             ),
             ViewState::ShowLanguageSelect => Some(
                 Dialog::new(tr!("Select Language"))
@@ -246,11 +247,11 @@ impl Component for PmgPageSpamList {
                             .with_child(tr!("Language"))
                             .with_child(LanguageSelector::new()),
                     )
-                    .on_close(ctx.link().callback(|_| Msg::CloseDialog)),
+                    .on_close(link.callback(|_| Msg::CloseDialog)),
             ),
         };
 
-        let fab = Fab::new("fa fa-calendar").on_activate(ctx.link().callback(|_| Msg::ShowDialog));
+        let fab = Fab::new("fa fa-calendar").on_activate(link.callback(|_| Msg::ShowDialog));
 
         let sub_notice = match self.subscription_result {
             Some(true) | None => None,
@@ -264,7 +265,7 @@ impl Component for PmgPageSpamList {
                         Button::new(tr!("No valid subscription"))
                             .icon_class("fa fa-exclamation-triangle")
                             .class("pwt-button-text")
-                            .on_activate(ctx.link().callback(|_| Msg::ShowSubscriptionNotice)),
+                            .on_activate(link.callback(|_| Msg::ShowSubscriptionNotice)),
                     ),
             ),
         };
@@ -293,25 +294,21 @@ impl Component for PmgPageSpamList {
                                                 MenuItem::new(tr!("Language"))
                                                     .icon_class("fa fa-language")
                                                     .on_select(
-                                                        ctx.link()
-                                                            .callback(|_| Msg::ShowLanguageSelect),
+                                                        link.callback(|_| Msg::ShowLanguageSelect),
                                                     ),
                                             )
                                             .with_item(
                                                 MenuItem::new(tr!("Switch to Desktop View"))
                                                     .icon_class("fa fa-desktop")
                                                     .on_select(
-                                                        ctx.link()
-                                                            .callback(|_| Msg::SwitchToDesktop),
+                                                        link.callback(|_| Msg::SwitchToDesktop),
                                                     ),
                                             )
                                             .with_separator()
                                             .with_item(
                                                 MenuItem::new(tr!("Logout"))
                                                     .icon_class("fa fa-sign-out")
-                                                    .on_select(
-                                                        ctx.link().callback(|_| Msg::Logout),
-                                                    ),
+                                                    .on_select(link.callback(|_| Msg::Logout)),
                                             ),
                                     ),
                             ),
