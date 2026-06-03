@@ -42,10 +42,10 @@ pub struct MailInfo {
     pub spamlevel: i64,
     // sum of the positive resp. negative spam test scores; these are fractional,
     // hence f64 (which is why MailInfo cannot derive Eq/Ord)
-    #[serde(default)]
-    pub spamlevel_positive: f64,
-    #[serde(default)]
-    pub spamlevel_negative: f64,
+    #[serde(rename = "score-positive", default)]
+    pub score_positive: f64,
+    #[serde(rename = "score-negative", default)]
+    pub score_negative: f64,
     // whether the mail was marked as seen; accept both JSON bool and the 1/0 a
     // Perl API may emit
     #[serde(default, deserialize_with = "deserialize_flexible_bool")]
@@ -278,7 +278,7 @@ fn render_list_item(
                 .with_child(tr!("Score: {0}", item.spamlevel))
                 .with_child(html! {
                     <span class="pwt-font-label-small">
-                        { format!("+{:.1} / {:.1}", item.spamlevel_positive, item.spamlevel_negative) }
+                        { format!("+{:.1} / {:.1}", item.score_positive, item.score_negative) }
                     </span>
                 });
             let mut main = Row::new()
