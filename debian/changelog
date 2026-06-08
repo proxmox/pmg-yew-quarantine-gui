@@ -1,3 +1,25 @@
+pmg-mobile-quarantine-ui (0.5.0) trixie; urgency=medium
+
+  * spam quarantine: allow marking mails as seen or unseen, so users of a
+    shared mailbox can track which mails were already handled without deleting
+    them.
+
+  * spam quarantine: load external images of a mail only on demand, through a
+    'Load images' control that is shown only when the opened mail references
+    external images, to avoid signaling to the sender that a mail was opened.
+
+  * spam quarantine: show the summed positive and negative spam test scores
+    next to the net score, to better judge borderline mails where strong
+    negative tests can mask many positive hits.
+
+  * spam quarantine: refresh the mail list after an action taken from the mail
+    view, so its state stays in sync without a manual reload.
+
+  * spam list: add an 'About' entry to the menu that explains the quarantine
+    interface to end users.
+
+ -- Proxmox Support Team <support@proxmox.com>  Mon, 08 Jun 2026 13:09:11 +0200
+
 pmg-mobile-quarantine-ui (0.4.0) trixie; urgency=medium
 
   * execute actions when opening gui from a link from quarantine mails.
