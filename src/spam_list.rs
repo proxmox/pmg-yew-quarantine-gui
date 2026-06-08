@@ -298,6 +298,16 @@ fn render_list_item(
                 .with_child(score)
                 .with_child(Fa::new("chevron-right").class(Opacity::Half));
 
+            let seen_action = if item.seen {
+                SlidableAction::new(tr!("Mark as Unseen"))
+                    .icon_class("fa fa-eye-slash")
+                    .on_activate(make_cb(MailAction::MarkUnseen))
+            } else {
+                SlidableAction::new(tr!("Mark as Seen"))
+                    .icon_class("fa fa-eye")
+                    .on_activate(make_cb(MailAction::MarkSeen))
+            };
+
             Slidable::new(main)
                 .class(Overflow::Auto)
                 .on_tap({
@@ -324,11 +334,7 @@ fn render_list_item(
                                 .icon_class("fa fa-check")
                                 .on_activate(make_cb(MailAction::Welcomelist)),
                         )
-                        .with_child(
-                            SlidableAction::new(tr!("Mark as Seen"))
-                                .icon_class("fa fa-eye")
-                                .on_activate(make_cb(MailAction::MarkSeen)),
-                        ),
+                        .with_child(seen_action),
                 )
                 .right_actions(
                     Row::new()
