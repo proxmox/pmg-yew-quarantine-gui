@@ -1,3 +1,22 @@
+pmg-mobile-quarantine-ui (0.5.1) trixie; urgency=medium
+
+  * spam list: show a 'Mark as Unseen' slidable action for mails that are
+    already marked as seen, instead of always offering 'Mark as Seen'.
+
+  * update the bundled pwt widget toolkit to version 0.8.8, which improves the
+    following parts of the interface:
+    - mail view: the action menu is now shown as a scrollable bottom sheet
+      that keeps its 'Cancel' button reachable even with all six actions
+      listed, and scrolling through the actions no longer dismisses the sheet
+      by accident.
+    - spam list: the labels of the slidable mail actions no longer wrap to a
+      second line.
+    - theme mode selector: show a tooltip naming the active mode and use a
+      'desktop' icon for the system theme, which is clearer than the
+      previously used asterisk.
+
+ -- Proxmox Support Team <support@proxmox.com>  Tue, 09 Jun 2026 19:28:43 +0200
+
 pmg-mobile-quarantine-ui (0.5.0) trixie; urgency=medium
 
   * spam quarantine: allow marking mails as seen or unseen, so users of a
