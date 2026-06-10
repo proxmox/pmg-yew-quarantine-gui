@@ -1,3 +1,11 @@
+pmg-mobile-quarantine-ui (0.5.2) trixie; urgency=medium
+
+  * spam list: work around a rendering bug in Chromium-based browsers that
+    could cause the labels of the slidable mail actions to stay invisible
+    until the next layout change, like rotating the device.
+
+ -- Proxmox Support Team <support@proxmox.com>  Wed, 10 Jun 2026 15:38:17 +0200
+
 pmg-mobile-quarantine-ui (0.5.1) trixie; urgency=medium
 
   * spam list: show a 'Mark as Unseen' slidable action for mails that are
