@@ -319,39 +319,29 @@ fn render_list_item(
                         }
                     }
                 })
-                .left_actions(
-                    Row::new()
-                        .style("height", "100%") // FIXME better solved in scss of slidable?
-                        .class(AlignItems::Center)
-                        .with_child(
-                            SlidableAction::new(tr!("Deliver"))
-                                .class(ColorScheme::SuccessContainer)
-                                .icon_class("fa fa-paper-plane")
-                                .on_activate(make_cb(MailAction::Deliver)),
-                        )
-                        .with_child(
-                            SlidableAction::new(tr!("Welcomelist"))
-                                .icon_class("fa fa-check")
-                                .on_activate(make_cb(MailAction::Welcomelist)),
-                        )
-                        .with_child(seen_action),
+                .with_left_action(
+                    SlidableAction::new(tr!("Deliver"))
+                        .class(ColorScheme::SuccessContainer)
+                        .icon_class("fa fa-paper-plane")
+                        .on_activate(make_cb(MailAction::Deliver)),
                 )
-                .right_actions(
-                    Row::new()
-                        .style("height", "100%") // FIXME better solved in scss of slidable?
-                        .class(AlignItems::Center)
-                        .with_child(
-                            SlidableAction::new(tr!("Blocklist"))
-                                .class(ColorScheme::WarningContainer)
-                                .icon_class("fa fa-times")
-                                .on_activate(make_cb(MailAction::Blocklist)),
-                        )
-                        .with_child(
-                            SlidableAction::new(tr!("Delete"))
-                                .class(ColorScheme::ErrorContainer)
-                                .icon_class("fa fa-trash")
-                                .on_activate(make_cb(MailAction::Delete)),
-                        ),
+                .with_left_action(
+                    SlidableAction::new(tr!("Welcomelist"))
+                        .icon_class("fa fa-check")
+                        .on_activate(make_cb(MailAction::Welcomelist)),
+                )
+                .with_left_action(seen_action)
+                .with_right_action(
+                    SlidableAction::new(tr!("Blocklist"))
+                        .class(ColorScheme::WarningContainer)
+                        .icon_class("fa fa-times")
+                        .on_activate(make_cb(MailAction::Blocklist)),
+                )
+                .with_right_action(
+                    SlidableAction::new(tr!("Delete"))
+                        .class(ColorScheme::ErrorContainer)
+                        .icon_class("fa fa-trash")
+                        .on_activate(make_cb(MailAction::Delete)),
                 )
                 .into()
         }
